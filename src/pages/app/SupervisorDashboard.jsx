@@ -86,7 +86,7 @@ export default function SupervisorDashboard() {
   }, [recentEvents, liveEvents])
 
   useEffect(() => {
-    const apiBase = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/^http/, 'ws')
+    const apiBase = (import.meta.env.VITE_API_URL ?? import.meta.env.API_URL ?? 'http://localhost:3001').replace(/^http/, 'ws')
     const ws = new WebSocket(`${apiBase}/ws?roomId=supervisor`)
     wsRef.current = ws
     ws.onmessage = (e) => {

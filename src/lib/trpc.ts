@@ -9,7 +9,7 @@ export function makeTrpcClient() {
   return trpc.createClient({
     links: [
       httpBatchLink({
-        url: `${import.meta.env.VITE_API_URL ?? 'http://localhost:3001'}/api/trpc`,
+        url: `${import.meta.env.VITE_API_URL ?? import.meta.env.API_URL ?? 'http://localhost:3001'}/api/trpc`,
         headers() {
           const token = localStorage.getItem('room_token')
           return token ? { Authorization: `Bearer ${token}` } : {}

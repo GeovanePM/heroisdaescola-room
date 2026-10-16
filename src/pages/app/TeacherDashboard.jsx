@@ -48,7 +48,7 @@ export default function TeacherDashboard() {
   // WebSocket conectado à sala ativa
   useEffect(() => {
     if (!classroomId) { wsRef.current?.close(); return }
-    const apiBase = (import.meta.env.VITE_API_URL ?? 'http://localhost:3001').replace(/^http/, 'ws')
+    const apiBase = (import.meta.env.VITE_API_URL ?? import.meta.env.API_URL ?? 'http://localhost:3001').replace(/^http/, 'ws')
     const ws = new WebSocket(`${apiBase}/ws?roomId=${classroomId}`)
     wsRef.current = ws
     ws.onmessage = (e) => {
