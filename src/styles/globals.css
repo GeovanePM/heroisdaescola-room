@@ -45,8 +45,6 @@ body {
 .nav-logo-img {
   height: 48px;
   width: auto;
-  mix-blend-mode: multiply;
-  filter: brightness(1.1);
   border-radius: 8px;
 }
 .nav-sub-tag {
