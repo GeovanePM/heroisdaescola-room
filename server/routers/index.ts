@@ -6,6 +6,10 @@ import { diaryRouter }      from './diary.js'
 import { supervisorRouter } from './supervisor.js'
 import { checkinRouter }    from './checkin.js'
 import { adminRouter }      from './admin.js'
+import { heroRouter }       from './hero.js'
+import { cardsRouter }      from './cards.js'
+import { scheduleRouter }   from './schedule.js'
+import { taskRouter }       from './task.js'
 
 export const appRouter = router({
   auth:       authRouter,
@@ -15,6 +19,10 @@ export const appRouter = router({
   supervisor: supervisorRouter,
   checkin:    checkinRouter,
   admin:      adminRouter,
+  hero:       heroRouter,
+  cards:      cardsRouter,
+  schedule:   scheduleRouter,
+  task:       taskRouter,
 })
 
 export type AppRouter = typeof appRouter

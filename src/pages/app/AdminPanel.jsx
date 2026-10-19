@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { trpc } from '../../lib/trpc'
 
+const DAY_LABEL = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+
 const SEG_LABEL   = { fund1: 'Fund. I', fund2: 'Fund. II', medio: 'Médio' }
 const SHIFT_LABEL = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' }
 const ROLE_LABEL  = { teacher: 'Professor', supervisor: 'Supervisor', vice_director: 'Vice-Diretor', director: 'Diretor' }
@@ -168,7 +170,7 @@ function StaffTab() {
 
   const [modal, setModal]         = useState(null)  // null | 'create' | staffObj
   const [roomModal, setRoomModal] = useState(null)  // null | staffObj
-  const [form, setForm]           = useState({ name: '', email: '', password: '', role: 'teacher' })
+  const [form, setForm]           = useState({ name: '', email: '', password: '', role: 'teacher', telegramChatId: '' })
   const [err, setErr]             = useState('')
 
   const { data: staffRooms = [] } = trpc.admin.staffRooms.useQuery(
@@ -198,7 +200,7 @@ function StaffTab() {
   }
 
   function openEdit(s) {
-    setForm({ name: s.name, email: s.email, password: '', role: s.role })
+    setForm({ name: s.name, email: s.email, password: '', role: s.role, telegramChatId: s.telegram_chat_id ?? '' })
     setErr('')
     setModal(s)
   }
@@ -209,7 +211,7 @@ function StaffTab() {
       if (form.password.length < 6) { setErr('Senha mínima: 6 caracteres'); return }
       createMut.mutate({ name: form.name, email: form.email, password: form.password, role: form.role })
     } else {
-      updateMut.mutate({ id: modal.id, name: form.name, email: form.email, role: form.role })
+      updateMut.mutate({ id: modal.id, name: form.name, email: form.email, role: form.role, telegramChatId: form.telegramChatId || null })
     }
   }
 
@@ -304,6 +306,12 @@ function StaffTab() {
               <option value="director">Diretor</option>
             </select>
           </div>
+          {modal !== 'create' && (
+            <div className="form-group">
+              <label className="form-label">Telegram Chat ID (alertas)</label>
+              <input className="form-input" placeholder="Ex: 123456789" value={form.telegramChatId} onChange={e => setForm(f => ({ ...f, telegramChatId: e.target.value }))} />
+            </div>
+          )}
         </Modal>
       )}
 
@@ -359,23 +367,243 @@ export default function AdminPanel() {
       </header>
 
       <div className="admin-tabs">
-        <button
-          className={`admin-tab ${tab === 'salas' ? 'admin-tab-active' : ''}`}
-          onClick={() => setTab('salas')}
-        >
-          Salas
-        </button>
-        <button
-          className={`admin-tab ${tab === 'staff' ? 'admin-tab-active' : ''}`}
-          onClick={() => setTab('staff')}
-        >
-          Staff
-        </button>
+        {['salas', 'staff', 'grade', 'herois', 'cartas'].map(t => (
+          <button key={t} className={`admin-tab ${tab === t ? 'admin-tab-active' : ''}`} onClick={() => setTab(t)}>
+            {{ salas: 'Salas', staff: 'Staff', grade: 'Grade Horária', herois: 'Heróis', cartas: 'Cartas' }[t]}
+          </button>
+        ))}
       </div>
 
       <div className="admin-content">
-        {tab === 'salas' ? <ClassroomTab /> : <StaffTab />}
+        {tab === 'salas'  && <ClassroomTab />}
+        {tab === 'staff'  && <StaffTab />}
+        {tab === 'grade'  && <ScheduleTab />}
+        {tab === 'herois' && <HeroTab />}
+        {tab === 'cartas' && <CardsTab />}
       </div>
+    </div>
+  )
+}
+
+// ─── Aba Grade Horária ───────────────────────────────────────────────────────
+
+function ScheduleTab() {
+  const utils = trpc.useUtils()
+  const { data: periods = [], isLoading } = trpc.schedule.list.useQuery()
+  const [modal, setModal] = useState(null)
+  const [form, setForm]   = useState({ dayOfWeek: 1, periodNumber: 1, startTime: '07:00', endTime: '08:00', name: 'Aula', isBreak: false })
+  const [err, setErr]     = useState('')
+
+  const createMut = trpc.schedule.create.useMutation({
+    onSuccess() { utils.schedule.list.invalidate(); setModal(null) },
+    onError(e)  { setErr(e.message) },
+  })
+  const deleteMut = trpc.schedule.delete.useMutation({
+    onSuccess() { utils.schedule.list.invalidate() },
+  })
+
+  const byDay = Array.from({ length: 7 }, (_, i) => ({
+    day: i,
+    periods: periods.filter(p => p.day_of_week === i).sort((a, b) => a.start_time.localeCompare(b.start_time)),
+  })).filter(d => d.periods.length > 0 || [1,2,3,4,5].includes(d.day))
+
+  return (
+    <div>
+      <div className="admin-section-header">
+        <h2 className="section-label">Grade Horária</h2>
+        <button className="btn-admin-add" onClick={() => { setForm({ dayOfWeek: 1, periodNumber: 1, startTime: '07:00', endTime: '08:00', name: 'Aula', isBreak: false }); setErr(''); setModal('create') }}>+ Novo Período</button>
+      </div>
+      <div className="schedule-grid">
+        {byDay.map(({ day, periods: ps }) => (
+          <div key={day} className="schedule-day">
+            <div className="schedule-day-label">{DAY_LABEL[day]}</div>
+            {ps.map(p => (
+              <div key={p.id} className={`schedule-period ${p.is_break ? 'period-break' : ''}`}>
+                <span className="period-time">{p.start_time}–{p.end_time}</span>
+                <span className="period-name">{p.name}</span>
+                <button className="btn-sm btn-sm-danger" onClick={() => deleteMut.mutate({ id: p.id })}>×</button>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+      {modal && (
+        <Modal title="Novo Período" onClose={() => setModal(null)} footer={
+          <>
+            <button className="btn-modal-cancel" onClick={() => setModal(null)}>Cancelar</button>
+            <button className="btn-modal-confirm" onClick={() => createMut.mutate(form)} disabled={createMut.isPending}>
+              {createMut.isPending ? 'Salvando...' : 'Salvar'}
+            </button>
+          </>
+        }>
+          {err && <p className="form-error">{err}</p>}
+          <div className="form-group">
+            <label className="form-label">Dia da semana</label>
+            <select className="form-select" value={form.dayOfWeek} onChange={e => setForm(f => ({ ...f, dayOfWeek: Number(e.target.value) }))}>
+              {DAY_LABEL.map((d, i) => <option key={i} value={i}>{d}</option>)}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Nome do período</label>
+            <input className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} />
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div className="form-group">
+              <label className="form-label">Início</label>
+              <input className="form-input" type="time" value={form.startTime} onChange={e => setForm(f => ({ ...f, startTime: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Fim</label>
+              <input className="form-input" type="time" value={form.endTime} onChange={e => setForm(f => ({ ...f, endTime: e.target.value }))} />
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Número do período</label>
+            <input className="form-input" type="number" min="1" value={form.periodNumber} onChange={e => setForm(f => ({ ...f, periodNumber: Number(e.target.value) }))} />
+          </div>
+          <div className="form-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '0.5rem' }}>
+            <input type="checkbox" id="isBreak" checked={form.isBreak} onChange={e => setForm(f => ({ ...f, isBreak: e.target.checked }))} />
+            <label htmlFor="isBreak" className="form-label" style={{ margin: 0 }}>É intervalo/recreio</label>
+          </div>
+        </Modal>
+      )}
+    </div>
+  )
+}
+
+// ─── Aba Heróis ──────────────────────────────────────────────────────────────
+
+function HeroTab() {
+  const utils = trpc.useUtils()
+  const { data: classrooms = [] } = trpc.admin.classroomList.useQuery()
+  const [selectedId, setSelectedId] = useState(null)
+  const [imageUrl, setImageUrl]     = useState('')
+  const [err, setErr]               = useState('')
+
+  const { data: results } = trpc.hero.results.useQuery(
+    { classroomId: selectedId ?? '' },
+    { enabled: !!selectedId }
+  )
+  const { data: room } = trpc.admin.classroomList.useQuery(undefined, {
+    select: d => d.find(c => c.id === selectedId),
+  })
+
+  const approveMut = trpc.hero.approve.useMutation({
+    onSuccess() { utils.admin.classroomList.invalidate(); setErr('') },
+    onError(e)  { setErr(e.message) },
+  })
+  const imageMut = trpc.hero.setImage.useMutation({
+    onSuccess() { utils.admin.classroomList.invalidate(); setImageUrl('') },
+    onError(e)  { setErr(e.message) },
+  })
+
+  const selected = classrooms.find(c => c.id === selectedId)
+
+  return (
+    <div>
+      <div className="admin-section-header">
+        <h2 className="section-label">Sistema de Heróis</h2>
+      </div>
+      <div className="form-group" style={{ maxWidth: 340 }}>
+        <label className="form-label">Selecionar sala</label>
+        <select className="form-select" value={selectedId ?? ''} onChange={e => setSelectedId(e.target.value || null)}>
+          <option value="">— escolha uma sala —</option>
+          {classrooms.filter(c => c.active).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+        </select>
+      </div>
+
+      {selectedId && (
+        <div className="hero-admin-panel">
+          {selected?.hero_name && (
+            <div className="hero-elected-box">
+              {selected.hero_image_url && <img src={selected.hero_image_url} alt={selected.hero_name} className="hero-admin-img" />}
+              <div>
+                <p className="hero-elected-label">Herói eleito</p>
+                <p className="hero-elected-name">{selected.hero_name}</p>
+              </div>
+            </div>
+          )}
+
+          <h3 className="section-label" style={{ marginTop: '1rem' }}>Votos recebidos</h3>
+          {results?.ranked?.length > 0 ? (
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead><tr><th>Nome sugerido</th><th>Votos</th><th>Ação</th></tr></thead>
+                <tbody>
+                  {results.ranked.map(r => (
+                    <tr key={r.name}>
+                      <td className="td-bold">{r.name}</td>
+                      <td>{r.votes}</td>
+                      <td>
+                        <button className="btn-sm btn-sm-success" onClick={() => approveMut.mutate({ classroomId: selectedId, heroName: r.name })}>
+                          Eleger
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : <p className="empty-state">Nenhum voto ainda. Compartilhe o link: <code>/vote/{selectedId}</code></p>}
+
+          <h3 className="section-label" style={{ marginTop: '1.5rem' }}>Imagem do herói</h3>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginBottom: '0.75rem' }}>
+            Gere a imagem no fal.ai ou outra IA e cole a URL abaixo:
+          </p>
+          {err && <p className="form-error">{err}</p>}
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <input className="form-input" style={{ flex: 1 }} placeholder="https://..." value={imageUrl} onChange={e => setImageUrl(e.target.value)} />
+            <button className="btn-modal-confirm" onClick={() => imageMut.mutate({ classroomId: selectedId, heroImageUrl: imageUrl })} disabled={!imageUrl || imageMut.isPending}>
+              Salvar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Aba Cartas ──────────────────────────────────────────────────────────────
+
+function CardsTab() {
+  const { data: cards = [], isLoading } = trpc.cards.schoolCards.useQuery()
+  const distributeMut = trpc.cards.distributeWeekly.useMutation({
+    onSuccess(data) { alert(data.message ?? `${data.distributed} cartas distribuídas!`) },
+    onError(e)      { alert(e.message) },
+  })
+
+  const CARD_COLOR = { legendary: '#FF8C00', gold: '#FFD700', silver: '#C0C0C0', bronze: '#CD7F32' }
+  const CARD_LABEL = { legendary: 'Lendária', gold: 'Ouro', silver: 'Prata', bronze: 'Bronze' }
+
+  return (
+    <div>
+      <div className="admin-section-header">
+        <h2 className="section-label">Cartas Semanais</h2>
+        <button className="btn-admin-add" onClick={() => distributeMut.mutate()} disabled={distributeMut.isPending}>
+          {distributeMut.isPending ? 'Distribuindo...' : 'Distribuir Cartas da Semana'}
+        </button>
+      </div>
+      <p style={{ fontSize: '0.82rem', color: 'var(--text-dim)', marginBottom: '1rem' }}>
+        Distribui uma carta para cada turma com base na posição atual no ranking. Lendária = 1º lugar, Ouro = 2º-3º, Prata = 4º-6º, Bronze = demais.
+      </p>
+      {isLoading ? <p className="empty-state">Carregando...</p> : (
+        <div className="admin-table-wrap">
+          <table className="admin-table">
+            <thead><tr><th>Turma</th><th>Carta</th><th>Semana</th><th>Data</th></tr></thead>
+            <tbody>
+              {cards.map(c => (
+                <tr key={c.id}>
+                  <td className="td-bold">{c.room_classrooms?.name ?? '—'}</td>
+                  <td><span className="status-badge" style={{ background: `${CARD_COLOR[c.card_type]}22`, color: CARD_COLOR[c.card_type] }}>{CARD_LABEL[c.card_type]}</span></td>
+                  <td>Semana {c.week_number}/{c.year}</td>
+                  <td className="td-dim">{new Date(c.earned_at).toLocaleDateString('pt-BR')}</td>
+                </tr>
+              ))}
+              {cards.length === 0 && <tr><td colSpan={4} className="td-empty">Nenhuma carta distribuída ainda.</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   )
 }

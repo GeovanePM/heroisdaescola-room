@@ -8,6 +8,7 @@ import { WebSocketServer } from 'ws'
 import * as trpcExpress from '@trpc/server/adapters/express'
 import { appRouter } from './routers/index.js'
 import { createContext } from './trpc.js'
+import { getTaskPublic, handleCompletion } from './routers/task.js'
 
 const app  = express()
 const PORT = Number(process.env.PORT ?? 3001)
@@ -33,6 +34,29 @@ app.use(express.json())
 app.use('/api/trpc', trpcExpress.createExpressMiddleware({ router: appRouter, createContext }))
 
 app.get('/health', (_, res) => res.json({ ok: true }))
+
+// ── Endpoints públicos para o Guardiões dos Números ───────────────────────────
+app.get('/api/tasks/:taskId', async (req, res) => {
+  try {
+    const task = await getTaskPublic(req.params.taskId)
+    if (!task) return res.status(404).json({ error: 'Tarefa não encontrada' })
+    res.json(task)
+  } catch (e: any) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+app.post('/api/tasks/:taskId/complete', async (req, res) => {
+  try {
+    const { studentName } = req.body
+    if (!studentName || typeof studentName !== 'string' || !studentName.trim())
+      return res.status(400).json({ error: 'Nome do aluno obrigatório' })
+    const result = await handleCompletion(req.params.taskId, studentName)
+    res.json(result)
+  } catch (e: any) {
+    res.status(400).json({ error: e.message })
+  }
+})
 
 const httpServer = createServer(app)
 

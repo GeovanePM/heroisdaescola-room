@@ -66,7 +66,7 @@ export const adminRouter = router({
     requireAdmin(ctx.staff.role)
     const { data, error } = await supabase
       .from('room_staff')
-      .select('id, name, email, role, active')
+      .select('id, name, email, role, active, telegram_chat_id')
       .eq('school_id', ctx.staff.schoolId)
       .order('name')
     if (error) throw new Error(error.message)
@@ -100,21 +100,24 @@ export const adminRouter = router({
 
   staffUpdate: protectedProcedure
     .input(z.object({
-      id:     z.string().uuid(),
-      name:   z.string().min(1).optional(),
-      email:  z.string().email().optional(),
-      role:   z.enum(['teacher', 'supervisor', 'vice_director', 'director']).optional(),
-      active: z.boolean().optional(),
+      id:             z.string().uuid(),
+      name:           z.string().min(1).optional(),
+      email:          z.string().email().optional(),
+      role:           z.enum(['teacher', 'supervisor', 'vice_director', 'director']).optional(),
+      active:         z.boolean().optional(),
+      telegramChatId: z.string().optional().nullable(),
     }))
     .mutation(async ({ input, ctx }) => {
       requireAdmin(ctx.staff.role)
-      const { id, ...fields } = input
+      const { id, telegramChatId, ...rest } = input
+      const fields: any = { ...rest }
+      if (telegramChatId !== undefined) fields.telegram_chat_id = telegramChatId
       const { data, error } = await supabase
         .from('room_staff')
         .update(fields)
         .eq('id', id)
         .eq('school_id', ctx.staff.schoolId)
-        .select('id, name, email, role, active')
+        .select('id, name, email, role, active, telegram_chat_id')
         .single()
       if (error) throw new Error(error.message)
       return data

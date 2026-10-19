@@ -21,4 +21,6 @@ services:
       - key: APP_URL
         sync: false
       - key: ENABLE_TELEGRAM
-        value: false
+        value: true
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false

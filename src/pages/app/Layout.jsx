@@ -3,11 +3,11 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 
 const NAV_ITEMS = {
-  teacher:       [{ to: '/app/sala',       label: '🏫 Minha Sala' }],
-  supervisor:    [{ to: '/app/supervisor', label: '👁️ Supervisão' }, { to: '/app/qrcodes', label: '📱 QR Codes' }, { to: '/app/ranking-tv', label: '📊 Ranking' }],
-  vice_director: [{ to: '/app/supervisor', label: '👁️ Supervisão' }, { to: '/app/qrcodes', label: '📱 QR Codes' }, { to: '/app/ranking-tv', label: '📊 Ranking' }],
-  director:      [{ to: '/app/diretor',    label: '🏛️ Visão Geral' }, { to: '/app/qrcodes', label: '📱 QR Codes' }, { to: '/app/ranking-tv', label: '📊 Ranking' }],
-  admin:         [{ to: '/app/admin',      label: '⚙️ Admin' }, { to: '/app/diretor', label: '🏛️ Visão Geral' }, { to: '/app/supervisor', label: '👁️ Salas' }, { to: '/app/qrcodes', label: '📱 QR Codes' }, { to: '/app/ranking-tv', label: '📊 Ranking' }],
+  teacher:       [{ to: '/app/sala',       label: '🏫 Minha Sala' }, { to: '/app/games', label: '🎮 Jogos' }],
+  supervisor:    [{ to: '/app/supervisor', label: '👁️ Supervisão' }, { to: '/app/qrcodes', label: '📱 QR Codes' }, { to: '/app/games', label: '🎮 Jogos' }, { to: '/director-tv', label: '📺 TV' }],
+  vice_director: [{ to: '/app/supervisor', label: '👁️ Supervisão' }, { to: '/app/qrcodes', label: '📱 QR Codes' }, { to: '/app/games', label: '🎮 Jogos' }, { to: '/director-tv', label: '📺 TV' }],
+  director:      [{ to: '/app/diretor',    label: '🏛️ Visão Geral' }, { to: '/app/qrcodes', label: '📱 QR Codes' }, { to: '/app/games', label: '🎮 Jogos' }, { to: '/director-tv', label: '📺 TV' }],
+  admin:         [{ to: '/app/admin', label: '⚙️ Admin' }, { to: '/app/diretor', label: '🏛️ Visão Geral' }, { to: '/app/supervisor', label: '👁️ Salas' }, { to: '/app/qrcodes', label: '📱 QR Codes' }, { to: '/app/games', label: '🎮 Jogos' }, { to: '/director-tv', label: '📺 TV' }],
 }
 
 export default function AppLayout() {

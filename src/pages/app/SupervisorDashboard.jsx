@@ -41,7 +41,7 @@ function ExitTimer({ exit }) {
 
   return (
     <div className={`exit-timer ${alert ? 'exit-timer-alert' : ''}`}>
-      <span className="exit-timer-name">🚪 {exit.student_ref ?? 'Aluno'}</span>
+      <span className="exit-timer-name">🚪 {exit.student_ref ?? 'Aluno'}{exit.notes ? ` · ${exit.notes}` : ''}</span>
       <span className={`exit-timer-clock ${alert ? 'exit-clock-alert' : ''}`}>
         {display}
       </span>
@@ -191,6 +191,7 @@ export default function SupervisorDashboard() {
                 <span className="feed-type" style={{ color: info.color }}>{info.label}</span>
                 <span className="feed-room">{ev.room_classrooms?.name ?? '—'}</span>
                 {ev.student_ref && <span className="feed-student">{ev.student_ref}</span>}
+                {ev.notes && <span className="feed-reason">({ev.notes})</span>}
                 <span className={`feed-xp ${ev.xp_value > 0 ? 'xp-pos' : ev.xp_value < 0 ? 'xp-neg' : 'xp-neutral'}`}>
                   {ev.xp_value !== 0 ? (ev.xp_value > 0 ? `+${ev.xp_value}` : ev.xp_value) : '—'}
                 </span>

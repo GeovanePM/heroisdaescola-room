@@ -8,13 +8,16 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import Landing             from './pages/Landing'
 import Login               from './pages/Login'
 import CheckIn             from './pages/CheckIn'
+import HeroVote            from './pages/HeroVote'
 import AppLayout           from './pages/app/Layout'
 import TeacherDashboard    from './pages/app/TeacherDashboard'
 import SupervisorDashboard from './pages/app/SupervisorDashboard'
 import DirectorPanel       from './pages/app/DirectorPanel'
 import QRCodes             from './pages/app/QRCodes'
-import RankingTV           from './pages/RankingTV'
 import AdminPanel          from './pages/app/AdminPanel'
+import GamesHub            from './pages/app/GamesHub'
+import RankingTV           from './pages/RankingTV'
+import DirectorTV          from './pages/DirectorTV'
 
 function ProtectedRoute({ children, roles }) {
   const { isAuth, user } = useAuth()
@@ -37,7 +40,13 @@ function AppProviders() {
             <Route path="/"           element={<Landing />} />
             <Route path="/login"      element={<Login />} />
             <Route path="/ranking-tv" element={<RankingTV />} />
+            <Route path="/director-tv" element={
+              <ProtectedRoute roles={['director','admin','vice_director','supervisor']}>
+                <DirectorTV />
+              </ProtectedRoute>
+            } />
             <Route path="/check-in/:classroomId" element={<CheckIn />} />
+            <Route path="/vote/:classroomId"     element={<HeroVote />} />
 
             <Route path="/app" element={
               <ProtectedRoute>
@@ -51,6 +60,7 @@ function AppProviders() {
               <Route path="qrcodes"   element={<ProtectedRoute roles={['director','admin','supervisor']}><QRCodes /></ProtectedRoute>} />
               <Route path="ranking-tv" element={<RankingTV />} />
               <Route path="admin"     element={<ProtectedRoute roles={['admin']}><AdminPanel /></ProtectedRoute>} />
+              <Route path="games"     element={<GamesHub />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />
