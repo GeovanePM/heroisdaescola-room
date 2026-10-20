@@ -310,6 +310,14 @@ function StaffTab() {
             <div className="form-group">
               <label className="form-label">Telegram Chat ID (alertas)</label>
               <input className="form-input" placeholder="Ex: 123456789" value={form.telegramChatId} onChange={e => setForm(f => ({ ...f, telegramChatId: e.target.value }))} />
+              <div className="telegram-help">
+                <span className="telegram-help-title">ℹ️ Como obter o Chat ID:</span>
+                <ol className="telegram-help-steps">
+                  <li>Abra <strong>@seguranca_escolar_bot</strong> no Telegram → envie <code>/start</code></li>
+                  <li>Abra <strong>@userinfobot</strong> no Telegram → envie <code>/start</code></li>
+                  <li>Cole o número <strong>Id:</strong> que ele responder aqui</li>
+                </ol>
+              </div>
             </div>
           )}
         </Modal>

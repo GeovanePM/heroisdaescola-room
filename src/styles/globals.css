@@ -1167,6 +1167,12 @@ body {
 .form-select { appearance: none; cursor: pointer; }
 .form-error { color: #FF6666; font-size: 0.82rem; background: rgba(255,68,68,0.1); padding: 8px 12px; border-radius: 8px; margin-bottom: 1rem; }
 .form-hint  { font-size: 0.82rem; color: var(--text-dim); margin: 0 0 1rem; }
+.telegram-help { margin-top: 0.5rem; padding: 0.75rem 1rem; background: rgba(0,191,255,0.06); border: 1px solid rgba(0,191,255,0.2); border-radius: 8px; }
+.telegram-help-title { font-size: 0.8rem; font-weight: 700; color: #00BFFF; display: block; margin-bottom: 0.4rem; }
+.telegram-help-steps { margin: 0; padding-left: 1.2rem; display: flex; flex-direction: column; gap: 4px; }
+.telegram-help-steps li { font-size: 0.78rem; color: var(--text-dim); }
+.telegram-help-steps strong { color: var(--text); }
+.telegram-help-steps code { background: rgba(255,255,255,0.08); padding: 1px 5px; border-radius: 4px; font-family: monospace; font-size: 0.78rem; }
 
 /* ── Checklist de salas (modal de staff) ── */
 .room-checklist { display: flex; flex-direction: column; gap: 0.5rem; max-height: 320px; overflow-y: auto; }
