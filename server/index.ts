@@ -25,6 +25,8 @@ app.use(cors({
     if (ALLOWED_ORIGINS.has(origin)) return cb(null, true)
     // Vercel preview URLs: https://*.vercel.app
     if (/^https:\/\/[^.]+\.vercel\.app$/.test(origin)) return cb(null, true)
+    // Subdomínios próprios: https://*.heroisdaescola.com.br
+    if (/^https:\/\/[^.]+\.heroisdaescola\.com\.br$/.test(origin)) return cb(null, true)
     cb(new Error('CORS não permitido'))
   },
   credentials: true,
