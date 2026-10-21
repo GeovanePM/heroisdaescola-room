@@ -8,7 +8,7 @@ import { sendTelegram } from '../telegram.js'
 export async function getTaskPublic(taskId: string) {
   const { data, error } = await supabase
     .from('room_tasks')
-    .select('id, title, type, focus, target_count, xp_reward, deadline, status, room_classrooms(name, shift)')
+    .select('id, title, type, focus, target_count, xp_reward, deadline, status, subject_topic_id, room_classrooms(name, shift)')
     .eq('id', taskId)
     .maybeSingle()
 
@@ -112,27 +112,29 @@ export const taskRouter = router({
 
   create: protectedProcedure
     .input(z.object({
-      classroomId: z.string().uuid(),
-      title:       z.string().min(1).max(100),
-      type:        z.enum(['tarefa', 'prova']),
-      focus:       z.array(z.enum(['fracoes', 'problemas', 'logica'])).min(1),
-      targetCount: z.number().int().min(1).max(500),
-      xpReward:    z.number().int().min(0).max(1000),
-      deadline:    z.string().nullable().optional(),
+      classroomId:     z.string().uuid(),
+      title:           z.string().min(1).max(100),
+      type:            z.enum(['tarefa', 'prova']),
+      focus:           z.array(z.enum(['fracoes', 'problemas', 'logica'])).default([]),
+      targetCount:     z.number().int().min(1).max(500),
+      xpReward:        z.number().int().min(0).max(1000),
+      deadline:        z.string().nullable().optional(),
+      subjectTopicId:  z.string().uuid().nullable().optional(),
     }))
     .mutation(async ({ input, ctx }) => {
       const { data, error } = await supabase
         .from('room_tasks')
         .insert({
-          classroom_id: input.classroomId,
-          school_id:    ctx.staff.schoolId,
-          staff_id:     ctx.staff.id,
-          title:        input.title,
-          type:         input.type,
-          focus:        input.focus,
-          target_count: input.targetCount,
-          xp_reward:    input.xpReward,
-          deadline:     input.deadline ?? null,
+          classroom_id:      input.classroomId,
+          school_id:         ctx.staff.schoolId,
+          staff_id:          ctx.staff.id,
+          title:             input.title,
+          type:              input.type,
+          focus:             input.focus,
+          target_count:      input.targetCount,
+          xp_reward:         input.xpReward,
+          deadline:          input.deadline ?? null,
+          subject_topic_id:  input.subjectTopicId ?? null,
         })
         .select().single()
 

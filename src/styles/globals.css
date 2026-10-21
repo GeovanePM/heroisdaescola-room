@@ -1598,3 +1598,170 @@ body {
 .rpt-interv-row    { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-dim); }
 .rpt-interv-teacher { color: var(--text); }
 .rpt-interv-time   { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ── BLOCO 5: MATÉRIAS E TÓPICOS ─────────────────────────────────────────── */
+
+/* Aviso de IA não configurada */
+.ai-warning-banner {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: rgba(255,165,0,0.1); border: 1px solid rgba(255,165,0,0.35);
+  border-radius: 12px; padding: 0.9rem 1.1rem; margin-bottom: 1.25rem; font-size: 0.88rem; color: #FFA500;
+}
+.ai-warning-banner strong { font-weight: 800; }
+
+/* Grid de matérias */
+.materias-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+
+/* Card de matéria */
+.materia-card {
+  background: var(--bg-card2);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; overflow: hidden;
+}
+.materia-card-header {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.85rem 1.1rem; cursor: pointer; user-select: none;
+  transition: background 0.15s;
+}
+.materia-card-header:hover { background: rgba(255,255,255,0.03); }
+.materia-icon { font-size: 1.6rem; flex-shrink: 0; }
+.materia-info { flex: 1; }
+.materia-name { font-weight: 800; font-size: 1rem; }
+.materia-meta { font-size: 0.75rem; color: var(--text-dim); margin-top: 1px; }
+.materia-inactive-badge {
+  font-size: 0.7rem; background: rgba(255,68,68,0.15); color: #FF6B6B;
+  border-radius: 20px; padding: 2px 10px; margin-left: 0.5rem;
+}
+.materia-chevron { font-size: 0.8rem; color: var(--text-dim); transition: transform 0.2s; }
+.materia-chevron.open { transform: rotate(180deg); }
+.materia-actions {
+  display: flex; gap: 0.4rem; align-items: center; padding-right: 0.5rem; flex-shrink: 0;
+}
+.btn-materia-edit {
+  background: rgba(255,215,0,0.1); color: var(--gold); border: 1px solid rgba(255,215,0,0.25);
+  border-radius: 8px; padding: 4px 10px; font-size: 0.78rem; cursor: pointer; transition: background 0.15s;
+}
+.btn-materia-edit:hover { background: rgba(255,215,0,0.22); }
+.btn-materia-del {
+  background: rgba(255,68,68,0.1); color: #FF6B6B; border: 1px solid rgba(255,68,68,0.25);
+  border-radius: 8px; padding: 4px 8px; font-size: 0.78rem; cursor: pointer; transition: background 0.15s;
+}
+.btn-materia-del:hover { background: rgba(255,68,68,0.22); }
+
+/* Corpo expandido do card */
+.materia-body { padding: 0 1.1rem 1.1rem; }
+
+/* Lista de tópicos */
+.topics-list { display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 0.9rem; }
+.topic-row {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px; padding: 0.65rem 0.9rem;
+}
+.topic-row-header { display: flex; justify-content: space-between; align-items: center; }
+.topic-title { font-weight: 700; font-size: 0.9rem; flex: 1; }
+.topic-q-badge {
+  font-size: 0.7rem; background: rgba(0,191,255,0.15); color: #00bfff;
+  border-radius: 20px; padding: 2px 10px; margin: 0 0.5rem;
+}
+.topic-actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
+.btn-topic-gen {
+  background: rgba(0,255,136,0.1); color: #00ff88;
+  border: 1px solid rgba(0,255,136,0.25); border-radius: 8px;
+  padding: 3px 10px; font-size: 0.75rem; cursor: pointer; white-space: nowrap; transition: background 0.15s;
+}
+.btn-topic-gen:hover { background: rgba(0,255,136,0.22); }
+.btn-topic-gen:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-topic-clear {
+  background: rgba(255,165,0,0.1); color: #FFA500;
+  border: 1px solid rgba(255,165,0,0.25); border-radius: 8px;
+  padding: 3px 9px; font-size: 0.75rem; cursor: pointer; transition: background 0.15s;
+}
+.btn-topic-clear:hover { background: rgba(255,165,0,0.22); }
+.btn-topic-del {
+  background: rgba(255,68,68,0.1); color: #FF6B6B;
+  border: 1px solid rgba(255,68,68,0.25); border-radius: 8px;
+  padding: 3px 8px; font-size: 0.75rem; cursor: pointer; transition: background 0.15s;
+}
+.btn-topic-del:hover { background: rgba(255,68,68,0.22); }
+.topic-body { font-size: 0.78rem; color: var(--text-dim); margin-top: 0.45rem; }
+
+/* Preview das questões */
+.questions-preview { margin-top: 0.7rem; }
+.questions-preview-title { font-size: 0.78rem; color: var(--text-dim); font-weight: 700; margin-bottom: 0.5rem; }
+.question-list { display: flex; flex-direction: column; gap: 0.45rem; }
+.question-item {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 8px; padding: 0.6rem 0.8rem; font-size: 0.8rem;
+}
+.question-item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+.question-q { flex: 1; font-weight: 600; line-height: 1.4; }
+.question-diff { font-size: 0.7rem; color: var(--text-dim); white-space: nowrap; }
+.question-options { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem; }
+.question-opt {
+  font-size: 0.72rem; padding: 2px 8px; border-radius: 6px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+}
+.question-opt.correct { background: rgba(0,255,136,0.12); border-color: rgba(0,255,136,0.3); color: #00ff88; }
+.question-expl { font-size: 0.7rem; color: var(--text-dim); margin-top: 0.35rem; }
+.btn-question-del {
+  background: none; border: none; color: rgba(255,68,68,0.6); font-size: 0.85rem;
+  cursor: pointer; flex-shrink: 0; padding: 0 4px; line-height: 1;
+}
+.btn-question-del:hover { color: #FF6B6B; }
+
+/* Botões de adicionar dentro do card */
+.btn-add-topic {
+  display: flex; align-items: center; gap: 0.4rem;
+  background: rgba(255,255,255,0.05); border: 1px dashed rgba(255,255,255,0.2);
+  border-radius: 10px; padding: 0.6rem 1rem; font-size: 0.82rem; color: var(--text-dim);
+  cursor: pointer; width: 100%; transition: background 0.15s, border-color 0.15s;
+}
+.btn-add-topic:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.4); color: var(--text); }
+
+/* Botão de nova matéria */
+.btn-add-materia {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  background: rgba(0,255,136,0.08); border: 1px dashed rgba(0,255,136,0.3);
+  border-radius: 14px; padding: 1rem; font-size: 0.88rem; color: #00ff88; font-weight: 700;
+  cursor: pointer; transition: background 0.15s, border-color 0.15s;
+}
+.btn-add-materia:hover { background: rgba(0,255,136,0.15); border-color: rgba(0,255,136,0.5); }
+
+/* Seletor de ícone */
+.icon-picker { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.5rem 0; }
+.icon-btn {
+  font-size: 1.4rem; width: 2.6rem; height: 2.6rem;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px; border: 2px solid transparent;
+  background: rgba(255,255,255,0.05); cursor: pointer; transition: background 0.1s, border-color 0.15s;
+}
+.icon-btn:hover { background: rgba(255,255,255,0.12); }
+.icon-btn.selected { border-color: var(--gold); background: rgba(255,215,0,0.12); }
+
+/* Spinner de geração */
+.gen-spinner {
+  display: inline-block; width: 12px; height: 12px;
+  border: 2px solid rgba(0,255,136,0.3); border-top-color: #00ff88;
+  border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 4px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Modal de criar tópico / matéria */
+.modal-topic-body { display: flex; flex-direction: column; gap: 0.9rem; }
+.modal-topic-body label { font-size: 0.82rem; color: var(--text-dim); font-weight: 700; margin-bottom: 0.25rem; display: block; }
+.modal-topic-body input, .modal-topic-body textarea {
+  width: 100%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px; padding: 0.65rem 0.9rem; color: var(--text); font-size: 0.88rem;
+  font-family: inherit; resize: vertical;
+}
+.modal-topic-body input:focus, .modal-topic-body textarea:focus {
+  outline: none; border-color: rgba(0,255,136,0.4);
+}
+.modal-topic-body textarea { min-height: 90px; }
+
+/* Estado vazio de matérias */
+.materias-empty {
+  text-align: center; padding: 3rem 2rem; color: var(--text-dim); font-size: 0.9rem;
+}
+.materias-empty p { margin-bottom: 0.5rem; }
+.materias-empty strong { color: var(--text); }

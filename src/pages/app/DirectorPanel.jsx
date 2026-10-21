@@ -305,6 +305,252 @@ function Alunos({ classrooms }) {
   )
 }
 
+// ── Matérias ──────────────────────────────────────────────────────────────────
+
+const ICONS_PREDEFINED = ['📚','📖','✏️','🔢','🌍','🧪','🎨','🎵','🏃','💻','🌿','📐']
+const DIFF_LABEL = { 1: 'Fácil', 2: 'Médio', 3: 'Difícil' }
+
+function Materias() {
+  const utils = trpc.useUtils()
+  const [openSubjectId, setOpenSubjectId] = useState(null)
+  const [modalSubject,  setModalSubject]  = useState(false)
+  const [modalTopic,    setModalTopic]    = useState(false)
+  const [viewQuestions, setViewQuestions] = useState(null)
+  const [formS, setFormS] = useState({ name: '', icon: '📚', description: '' })
+  const [formT, setFormT] = useState({ title: '', body: '', difficulty: 1 })
+  const [genCount, setGenCount] = useState(10)
+  const [err, setErr] = useState('')
+
+  const { data: aiStatus }     = trpc.subjects.aiStatus.useQuery()
+  const { data: subjects = [], isLoading } = trpc.subjects.listSubjects.useQuery()
+  const { data: topics = [] }  = trpc.subjects.listTopics.useQuery(
+    { subjectId: openSubjectId ?? '' }, { enabled: !!openSubjectId }
+  )
+  const { data: questions = [] } = trpc.subjects.listQuestions.useQuery(
+    { topicId: viewQuestions ?? '' }, { enabled: !!viewQuestions }
+  )
+
+  const createSubjMut   = trpc.subjects.createSubject.useMutation({ onSuccess() { utils.subjects.listSubjects.invalidate(); setModalSubject(false); setFormS({ name:'',icon:'📚',description:'' }) }, onError(e) { setErr(e.message) } })
+  const removeSubjMut   = trpc.subjects.removeSubject.useMutation({ onSuccess() { utils.subjects.listSubjects.invalidate() } })
+  const createTopicMut  = trpc.subjects.createTopic.useMutation({ onSuccess() { utils.subjects.listTopics.invalidate(); setModalTopic(false); setFormT({ title:'',body:'',difficulty:1 }) }, onError(e) { setErr(e.message) } })
+  const removeTopicMut  = trpc.subjects.removeTopic.useMutation({ onSuccess() { utils.subjects.listTopics.invalidate() } })
+  const genMut          = trpc.subjects.generateQuestions.useMutation({
+    onSuccess(data) { utils.subjects.listTopics.invalidate(); utils.subjects.listQuestions.invalidate(); alert(`${data.count} questões geradas com sucesso!`) },
+    onError(e) { alert('Erro: ' + e.message) },
+  })
+  const clearMut        = trpc.subjects.clearTopicQuestions.useMutation({ onSuccess() { utils.subjects.listTopics.invalidate(); utils.subjects.listQuestions.invalidate() } })
+  const delQMut         = trpc.subjects.deleteQuestion.useMutation({ onSuccess() { utils.subjects.listQuestions.invalidate() } })
+
+  const openSubject = subjects.find(s => s.id === openSubjectId)
+
+  return (
+    <div className="materias-page">
+      <div className="materias-header">
+        <div>
+          <h2 className="rpt-section-title" style={{ marginBottom: '0.25rem' }}>Matérias para Guardiões dos Números</h2>
+          <p className="rpt-hint" style={{ marginBottom: 0 }}>
+            Cada matéria pode ter tópicos com questões geradas por IA. Professores vinculam tarefas a um tópico.
+          </p>
+        </div>
+        <button className="btn-admin-add" onClick={() => { setErr(''); setModalSubject(true) }}>+ Nova Matéria</button>
+      </div>
+
+      {!aiStatus?.configured && (
+        <div className="materias-ai-warn">
+          ⚠️ <strong>IA não configurada.</strong> Adicione <code>OPENAI_API_KEY</code> nas variáveis de ambiente do servidor para gerar questões automaticamente.
+        </div>
+      )}
+
+      {isLoading ? <p className="empty-state">Carregando...</p> : subjects.length === 0 ? (
+        <p className="empty-state">Nenhuma matéria cadastrada. Clique em "+ Nova Matéria" para começar.</p>
+      ) : (
+        <div className="materias-list">
+          {subjects.map(subj => {
+            const topicCount = subj.room_subject_topics?.filter(t => t.active)?.length ?? 0
+            const isOpen = openSubjectId === subj.id
+            return (
+              <div key={subj.id} className={`materia-card ${isOpen ? 'materia-card-open' : ''}`}>
+                <div className="materia-card-header" onClick={() => setOpenSubjectId(isOpen ? null : subj.id)}>
+                  <span className="materia-icon">{subj.icon}</span>
+                  <div className="materia-info">
+                    <span className="materia-name">{subj.name}</span>
+                    {subj.description && <span className="materia-desc">{subj.description}</span>}
+                  </div>
+                  <span className="materia-badge">{topicCount} tópico(s)</span>
+                  <span className="materia-arrow">{isOpen ? '▲' : '▼'}</span>
+                </div>
+
+                {isOpen && (
+                  <div className="materia-topics">
+                    <div className="materia-topics-header">
+                      <span className="rpt-section-title" style={{ marginBottom: 0 }}>Tópicos de {subj.name}</span>
+                      <div style={{ display:'flex', gap:'0.5rem' }}>
+                        <button className="btn-sm btn-sm-ghost" onClick={() => { setErr(''); setFormT({ title:'',body:'',difficulty:1 }); setModalTopic(true) }}>
+                          + Tópico
+                        </button>
+                        <button className="btn-sm btn-sm-danger" onClick={() => { if (confirm(`Remover matéria "${subj.name}" e todos os seus tópicos?`)) removeSubjMut.mutate({ id: subj.id }) }}>
+                          Remover matéria
+                        </button>
+                      </div>
+                    </div>
+
+                    {topics.length === 0 ? (
+                      <p className="empty-state" style={{ padding: '1rem' }}>Nenhum tópico ainda. Adicione um tópico para gerar questões.</p>
+                    ) : (
+                      <div className="topics-list">
+                        {topics.map(topic => (
+                          <div key={topic.id} className="topic-row">
+                            <div className="topic-info">
+                              <span className="topic-title">{topic.title}</span>
+                              <span className="topic-diff">{DIFF_LABEL[topic.difficulty]}</span>
+                              {topic.body && <span className="topic-body">{topic.body}</span>}
+                            </div>
+                            <div className="topic-stats">
+                              <span className="topic-qcount">{topic.questionCount} questão(ões)</span>
+                            </div>
+                            <div className="topic-actions">
+                              {aiStatus?.configured && (
+                                <div style={{ display:'flex', gap:'0.4rem', alignItems:'center' }}>
+                                  <select className="form-select" style={{ padding:'3px 6px', fontSize:'0.75rem', width:'auto' }}
+                                    value={genCount} onChange={e => setGenCount(Number(e.target.value))}>
+                                    {[5,10,15,20].map(n => <option key={n} value={n}>{n} questões</option>)}
+                                  </select>
+                                  <button
+                                    className="btn-sm btn-sm-ghost"
+                                    style={{ color:'#00ff88', borderColor:'rgba(0,255,136,0.3)' }}
+                                    onClick={() => { if (confirm(`Gerar ${genCount} questões para "${topic.title}" com IA?`)) genMut.mutate({ topicId: topic.id, count: genCount }) }}
+                                    disabled={genMut.isPending}
+                                  >
+                                    {genMut.isPending ? '⏳ Gerando...' : '✨ Gerar IA'}
+                                  </button>
+                                </div>
+                              )}
+                              <button className="btn-sm btn-sm-ghost" onClick={() => setViewQuestions(viewQuestions === topic.id ? null : topic.id)}>
+                                {viewQuestions === topic.id ? 'Fechar' : 'Ver questões'}
+                              </button>
+                              {topic.questionCount > 0 && (
+                                <button className="btn-sm btn-sm-danger" onClick={() => { if (confirm('Apagar todas as questões deste tópico?')) clearMut.mutate({ topicId: topic.id }) }}>
+                                  Limpar
+                                </button>
+                              )}
+                              <button className="btn-sm btn-sm-danger" onClick={() => { if (confirm(`Remover tópico "${topic.title}"?`)) removeTopicMut.mutate({ id: topic.id }) }}>
+                                Remover
+                              </button>
+                            </div>
+
+                            {viewQuestions === topic.id && (
+                              <div className="questions-preview">
+                                {questions.length === 0 ? (
+                                  <p style={{ color:'var(--text-dim)', fontSize:'0.82rem', padding:'0.5rem' }}>Nenhuma questão gerada ainda.</p>
+                                ) : questions.map((q, i) => (
+                                  <div key={q.id} className="question-item">
+                                    <div className="question-header">
+                                      <span className="question-num">Q{i+1}</span>
+                                      <span className="question-text">{q.question}</span>
+                                      <button className="btn-sm btn-sm-danger" style={{ padding:'2px 6px', fontSize:'0.7rem' }} onClick={() => delQMut.mutate({ id: q.id })}>✕</button>
+                                    </div>
+                                    <div className="question-opts">
+                                      {q.options.map((opt, oi) => (
+                                        <span key={oi} className={`question-opt ${oi === q.correct ? 'question-opt-correct' : ''}`}>{opt}</span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Modal nova matéria */}
+      {modalSubject && (
+        <div className="modal-overlay" onClick={() => setModalSubject(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Nova Matéria</h3>
+              <button className="modal-close" onClick={() => setModalSubject(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              {err && <p className="form-error">{err}</p>}
+              <div className="form-group">
+                <label className="form-label">Ícone</label>
+                <div className="icon-picker">
+                  {ICONS_PREDEFINED.map(ic => (
+                    <button key={ic} className={`icon-btn ${formS.icon === ic ? 'icon-btn-sel' : ''}`} onClick={() => setFormS(f => ({ ...f, icon: ic }))}>{ic}</button>
+                  ))}
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Nome da matéria</label>
+                <input className="form-input" placeholder="Ex: Português, Ciências, História..." value={formS.name} onChange={e => setFormS(f => ({ ...f, name: e.target.value }))} autoFocus />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Descrição (opcional)</label>
+                <input className="form-input" placeholder="Ex: 5º ano — Língua Portuguesa" value={formS.description} onChange={e => setFormS(f => ({ ...f, description: e.target.value }))} />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-modal-cancel" onClick={() => setModalSubject(false)}>Cancelar</button>
+              <button className="btn-modal-confirm" onClick={() => { if (!formS.name.trim()) { setErr('Nome obrigatório'); return } createSubjMut.mutate(formS) }} disabled={createSubjMut.isPending}>
+                Criar matéria
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal novo tópico */}
+      {modalTopic && openSubject && (
+        <div className="modal-overlay" onClick={() => setModalTopic(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Novo Tópico — {openSubject.name}</h3>
+              <button className="modal-close" onClick={() => setModalTopic(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              {err && <p className="form-error">{err}</p>}
+              <div className="form-group">
+                <label className="form-label">Título do tópico</label>
+                <input className="form-input" placeholder="Ex: Sílabas tônicas, Frações equivalentes..." value={formT.title} onChange={e => setFormT(f => ({ ...f, title: e.target.value }))} autoFocus />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Contexto para a IA (opcional)</label>
+                <textarea className="form-input" rows={3} placeholder="Descreva o nível, o tipo de exercícios esperados, exemplos..." value={formT.body} onChange={e => setFormT(f => ({ ...f, body: e.target.value }))} style={{ resize:'vertical' }} />
+                <p className="form-hint">Quanto mais contexto, melhores as questões geradas.</p>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Dificuldade</label>
+                <select className="form-select" value={formT.difficulty} onChange={e => setFormT(f => ({ ...f, difficulty: Number(e.target.value) }))}>
+                  <option value={1}>Fácil</option>
+                  <option value={2}>Médio</option>
+                  <option value={3}>Difícil</option>
+                </select>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-modal-cancel" onClick={() => setModalTopic(false)}>Cancelar</button>
+              <button className="btn-modal-confirm"
+                onClick={() => { if (!formT.title.trim()) { setErr('Título obrigatório'); return } createTopicMut.mutate({ subjectId: openSubjectId, ...formT }) }}
+                disabled={createTopicMut.isPending}
+              >
+                Criar tópico
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Principal ─────────────────────────────────────────────────────────────────
 
 export default function DirectorPanel() {
@@ -315,9 +561,10 @@ export default function DirectorPanel() {
   const { data: tasks = [] }      = trpc.task.list.useQuery({})
 
   const ABAS = [
-    { id: 'visao',  label: '📊 Visão Geral' },
-    { id: 'turmas', label: '🏫 Turmas'      },
-    { id: 'alunos', label: '👥 Alunos'      },
+    { id: 'visao',    label: '📊 Visão Geral' },
+    { id: 'turmas',   label: '🏫 Turmas'      },
+    { id: 'alunos',   label: '👥 Alunos'      },
+    { id: 'materias', label: '🎮 Matérias'    },
   ]
 
   return (
@@ -339,9 +586,10 @@ export default function DirectorPanel() {
         ))}
       </div>
 
-      {aba === 'visao'  && <VisaoGeral classrooms={classrooms} ranking={ranking} tasks={tasks} />}
-      {aba === 'turmas' && <Turmas classrooms={classrooms} />}
-      {aba === 'alunos' && <Alunos classrooms={classrooms} />}
+      {aba === 'visao'    && <VisaoGeral classrooms={classrooms} ranking={ranking} tasks={tasks} />}
+      {aba === 'turmas'   && <Turmas classrooms={classrooms} />}
+      {aba === 'alunos'   && <Alunos classrooms={classrooms} />}
+      {aba === 'materias' && <Materias />}
     </div>
   )
 }

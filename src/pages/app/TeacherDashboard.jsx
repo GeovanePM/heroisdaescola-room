@@ -250,8 +250,11 @@ function TasksTab({ rooms }) {
   const { data: tasks = [], isLoading } = trpc.task.list.useQuery({})
   const [modal, setModal]   = useState(false)
   const [detailTask, setDetailTask] = useState(null)
-  const [form, setForm]     = useState({ classroomId: '', title: '', type: 'tarefa', focus: ['fracoes'], targetCount: 30, xpReward: 50, deadline: '' })
+  const [form, setForm]     = useState({ classroomId: '', title: '', type: 'tarefa', focus: ['fracoes'], targetCount: 30, xpReward: 50, deadline: '', subjectTopicId: '' })
   const [err, setErr]       = useState('')
+
+  const { data: subjects = [] } = trpc.subjects.listSubjects.useQuery()
+  const allTopics = subjects.flatMap(s => (s.room_subject_topics ?? []).filter(t => t.active).map(t => ({ ...t, subjectName: s.name, subjectIcon: s.icon })))
 
   const { data: completions = [] } = trpc.task.completions.useQuery(
     { taskId: detailTask?.id ?? '' },
@@ -278,9 +281,11 @@ function TasksTab({ rooms }) {
   function submit() {
     if (!form.classroomId) { setErr('Selecione a turma'); return }
     if (!form.title.trim()) { setErr('Título obrigatório'); return }
-    if (form.focus.length === 0) { setErr('Selecione ao menos um conteúdo'); return }
+    if (!form.subjectTopicId && form.focus.length === 0) { setErr('Selecione um tópico ou conteúdo de matemática'); return }
     createMut.mutate({
       ...form,
+      subjectTopicId: form.subjectTopicId || null,
+      focus: form.subjectTopicId ? [] : form.focus,
       deadline: form.deadline || null,
     })
   }
@@ -404,21 +409,40 @@ function TasksTab({ rooms }) {
                   <option value="prova">Estudo para Prova</option>
                 </select>
               </div>
-              <div className="form-group">
-                <label className="form-label">Conteúdo (o jogo vai focar nisso)</label>
-                <div className="focus-toggle-group">
-                  {['fracoes', 'problemas', 'logica'].map(f => (
-                    <button
-                      key={f}
-                      type="button"
-                      className={`focus-toggle-btn ${form.focus.includes(f) ? 'focus-toggle-on' : ''}`}
-                      onClick={() => toggleFocus(f)}
-                    >
-                      {FOCUS_LABEL[f]}
-                    </button>
-                  ))}
+              {allTopics.length > 0 && (
+                <div className="form-group">
+                  <label className="form-label">Matéria/Tópico da escola (opcional)</label>
+                  <select className="form-select" value={form.subjectTopicId} onChange={e => setForm(f => ({ ...f, subjectTopicId: e.target.value }))}>
+                    <option value="">— Usar questões de Matemática —</option>
+                    {subjects.map(s => (
+                      <optgroup key={s.id} label={`${s.icon} ${s.name}`}>
+                        {(s.room_subject_topics ?? []).filter(t => t.active).map(t => (
+                          <option key={t.id} value={t.id}>{t.title}</option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                  <p className="form-hint">Se selecionado, o jogo usará as questões geradas para esse tópico.</p>
                 </div>
-              </div>
+              )}
+
+              {!form.subjectTopicId && (
+                <div className="form-group">
+                  <label className="form-label">Conteúdo matemático (o jogo vai focar nisso)</label>
+                  <div className="focus-toggle-group">
+                    {['fracoes', 'problemas', 'logica'].map(f => (
+                      <button
+                        key={f}
+                        type="button"
+                        className={`focus-toggle-btn ${form.focus.includes(f) ? 'focus-toggle-on' : ''}`}
+                        onClick={() => toggleFocus(f)}
+                      >
+                        {FOCUS_LABEL[f]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div className="form-group">
                   <label className="form-label">Meta (nº de alunos)</label>

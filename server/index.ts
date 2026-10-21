@@ -9,6 +9,7 @@ import * as trpcExpress from '@trpc/server/adapters/express'
 import { appRouter } from './routers/index.js'
 import { createContext } from './trpc.js'
 import { getTaskPublic, handleCompletion } from './routers/task.js'
+import { supabase } from './supabase.js'
 
 const app  = express()
 const PORT = Number(process.env.PORT ?? 3001)
@@ -57,6 +58,21 @@ app.post('/api/tasks/:taskId/complete', async (req, res) => {
     res.json(result)
   } catch (e: any) {
     res.status(400).json({ error: e.message })
+  }
+})
+
+// Questões de um tópico — usado pelo Guardiões dos Números
+app.get('/api/topics/:topicId/questions', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('room_subject_questions')
+      .select('id, question, options, correct, explanation')
+      .eq('topic_id', req.params.topicId)
+      .order('created_at')
+    if (error) return res.status(500).json({ error: error.message })
+    res.json(data ?? [])
+  } catch (e: any) {
+    res.status(500).json({ error: e.message })
   }
 })
 

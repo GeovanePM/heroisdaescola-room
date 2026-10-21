@@ -13,6 +13,7 @@ import { taskRouter }        from './task.js'
 import { studentRouter }     from './student.js'
 import { superAdminRouter }  from './superadmin.js'
 import { reportsRouter }     from './reports.js'
+import { subjectsRouter }    from './subjects.js'
 
 export const appRouter = router({
   auth:        authRouter,
@@ -29,6 +30,7 @@ export const appRouter = router({
   student:     studentRouter,
   superAdmin:  superAdminRouter,
   reports:     reportsRouter,
+  subjects:    subjectsRouter,
 })
 
 export type AppRouter = typeof appRouter
