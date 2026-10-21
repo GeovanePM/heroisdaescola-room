@@ -691,6 +691,30 @@ function Materias() {
   )
 }
 
+// ── Relógio ao vivo ───────────────────────────────────────────────────────────
+
+const DIAS_SEMANA = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado']
+const MESES       = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
+
+function RelogioAoVivo() {
+  const [agora, setAgora] = useState(new Date())
+  useEffect(() => {
+    const id = setInterval(() => setAgora(new Date()), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  const dia    = DIAS_SEMANA[agora.getDay()]
+  const data   = `${String(agora.getDate()).padStart(2,'0')} ${MESES[agora.getMonth()]} ${agora.getFullYear()}`
+  const hora   = `${String(agora.getHours()).padStart(2,'0')}:${String(agora.getMinutes()).padStart(2,'0')}:${String(agora.getSeconds()).padStart(2,'0')}`
+
+  return (
+    <div className="director-relogio">
+      <span className="director-relogio-hora">{hora}</span>
+      <span className="director-relogio-data">{dia}, {data}</span>
+    </div>
+  )
+}
+
 // ── Principal ─────────────────────────────────────────────────────────────────
 
 export default function DirectorPanel() {
@@ -709,9 +733,12 @@ export default function DirectorPanel() {
 
   return (
     <div className="director-page">
-      <header className="page-header">
-        <h1 className="page-title">Painel da Direção</h1>
-        <p className="page-subtitle">Gestão e monitoramento da escola</p>
+      <header className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+        <div>
+          <h1 className="page-title">Painel da Direção</h1>
+          <p className="page-subtitle">Gestão e monitoramento da escola</p>
+        </div>
+        <RelogioAoVivo />
       </header>
 
       <div className="teacher-tabs" style={{ marginBottom: '1.5rem' }}>
