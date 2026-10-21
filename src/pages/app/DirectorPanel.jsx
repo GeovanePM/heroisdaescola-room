@@ -114,7 +114,7 @@ function VisaoGeral({ classrooms, ranking, tasks }) {
 
 // ── Turmas ────────────────────────────────────────────────────────────────────
 
-const FORM_TURMA_EMPTY = { name: '', segment: 'fund1', shift: 'manha', studentsText: '' }
+const FORM_TURMA_EMPTY = { name: '', segment: 'fund1', shift: 'manha', students: [] }
 
 function Turmas({ classrooms }) {
   const utils = trpc.useUtils()
@@ -125,6 +125,9 @@ function Turmas({ classrooms }) {
   const [modal, setModal]   = useState(false)
   const [form, setForm]     = useState(FORM_TURMA_EMPTY)
   const [err, setErr]       = useState('')
+  const [fileErr, setFileErr] = useState('')
+  const [parsing, setParsing] = useState(false)
+  const fileRef = useRef(null)
 
   const createMut = trpc.admin.classroomCreate.useMutation({
     onSuccess(data) {
@@ -136,10 +139,33 @@ function Turmas({ classrooms }) {
     onError(e) { setErr(e.message) },
   })
 
+  async function handleFile(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    setParsing(true)
+    setFileErr('')
+    try {
+      const XLSX = await import('xlsx')
+      const data = await file.arrayBuffer()
+      const wb   = XLSX.read(data)
+      const ws   = wb.Sheets[wb.SheetNames[0]]
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1 })
+      const SKIP = /^(nome|alunos?|students?|nomes?|name|#|n[oº]\.?|chamada)$/i
+      const names = rows
+        .map(row => String(row[0] ?? '').trim())
+        .filter(n => n && !SKIP.test(n))
+      setForm(f => ({ ...f, students: names }))
+    } catch {
+      setFileErr('Erro ao ler o arquivo. Use .csv ou .xlsx com os nomes na 1ª coluna.')
+    } finally {
+      setParsing(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
   function salvar() {
     if (!form.name.trim()) { setErr('Nome obrigatório'); return }
-    const students = form.studentsText.split('\n').map(s => s.trim()).filter(Boolean)
-    createMut.mutate({ name: form.name, segment: form.segment, shift: form.shift, ...(students.length ? { students } : {}) })
+    createMut.mutate({ name: form.name, segment: form.segment, shift: form.shift, ...(form.students.length ? { students: form.students } : {}) })
   }
 
   useEffect(() => {
@@ -239,20 +265,44 @@ function Turmas({ classrooms }) {
                 </div>
               </div>
               <div className="form-group">
-                <label className="form-label">Alunos (opcional — um nome por linha)</label>
-                <textarea
-                  className="form-input"
-                  rows={8}
-                  placeholder={"João da Silva\nMaria Oliveira\nPedro Santos\n..."}
-                  value={form.studentsText}
-                  onChange={e => setForm(f => ({ ...f, studentsText: e.target.value }))}
-                  style={{ resize: 'vertical', fontFamily: 'inherit' }}
+                <label className="form-label">Lista de alunos (opcional)</label>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept=".csv,.xlsx,.xls"
+                  style={{ display: 'none' }}
+                  onChange={handleFile}
                 />
-                <p className="form-hint">
-                  {form.studentsText.split('\n').filter(s => s.trim()).length > 0
-                    ? `${form.studentsText.split('\n').filter(s => s.trim()).length} aluno(s) serão cadastrados com nº de chamada automático.`
-                    : 'Cole a lista de alunos ou deixe em branco para adicionar depois.'}
-                </p>
+                <button
+                  type="button"
+                  className="btn-upload-list"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={parsing}
+                >
+                  {parsing ? '⏳ Lendo arquivo...' : '📂 Importar lista (.csv ou .xlsx)'}
+                </button>
+                {fileErr && <p className="form-error" style={{ marginTop: '0.5rem' }}>{fileErr}</p>}
+                {form.students.length > 0 && (
+                  <div className="students-preview">
+                    <div className="students-preview-header">
+                      <span>{form.students.length} aluno(s) importado(s)</span>
+                      <button type="button" className="btn-clear-students" onClick={() => setForm(f => ({ ...f, students: [] }))}>
+                        Limpar
+                      </button>
+                    </div>
+                    <div className="students-preview-list">
+                      {form.students.slice(0, 5).map((n, i) => (
+                        <span key={i} className="student-chip">{i + 1}. {n}</span>
+                      ))}
+                      {form.students.length > 5 && (
+                        <span className="student-chip student-chip-more">+{form.students.length - 5} mais...</span>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {form.students.length === 0 && !fileErr && (
+                  <p className="form-hint">Os nomes devem estar na 1ª coluna da planilha. O nº de chamada será gerado automaticamente.</p>
+                )}
               </div>
             </div>
             <div className="modal-footer">
