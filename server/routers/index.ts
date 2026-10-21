@@ -12,6 +12,7 @@ import { scheduleRouter }    from './schedule.js'
 import { taskRouter }        from './task.js'
 import { studentRouter }     from './student.js'
 import { superAdminRouter }  from './superadmin.js'
+import { reportsRouter }     from './reports.js'
 
 export const appRouter = router({
   auth:        authRouter,
@@ -27,6 +28,7 @@ export const appRouter = router({
   task:        taskRouter,
   student:     studentRouter,
   superAdmin:  superAdminRouter,
+  reports:     reportsRouter,
 })
 
 export type AppRouter = typeof appRouter

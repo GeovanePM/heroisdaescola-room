@@ -1500,3 +1500,101 @@ body {
   font-family: 'Courier New', monospace; font-size: 1rem; font-weight: 900;
   color: var(--gold); letter-spacing: 1px;
 }
+
+/* ═══ BLOCO 4 — RELATÓRIOS ═══ */
+
+.rpt-page { padding: 0 0 3rem; }
+.rpt-body { padding-top: 0.25rem; }
+
+/* Seletor de período */
+.rpt-period-picker { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+.rpt-period-btn {
+  padding: 5px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+  background: transparent; color: var(--text-dim); font-family: inherit; font-size: 0.82rem;
+  font-weight: 600; cursor: pointer; transition: all 0.15s;
+}
+.rpt-period-btn:hover { border-color: var(--gold); color: var(--gold); }
+.rpt-period-active { background: rgba(255,215,0,0.12); border-color: var(--gold) !important; color: var(--gold) !important; }
+
+/* Totais */
+.rpt-totals {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 0.75rem; margin-bottom: 2rem;
+}
+.rpt-total-card {
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px; padding: 1rem 0.75rem; gap: 0.25rem;
+}
+.rpt-total-val { font-size: 1.8rem; font-weight: 900; line-height: 1; }
+.rpt-total-lbl { font-size: 0.7rem; color: var(--text-dim); text-align: center; }
+
+/* Títulos de seção dentro das abas */
+.rpt-section-title {
+  font-size: 0.78rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.6px;
+  color: var(--gold); margin: 0 0 0.75rem; padding-bottom: 0.3rem;
+  border-bottom: 1px solid rgba(255,215,0,0.15);
+}
+
+.rpt-hint { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 1rem; line-height: 1.5; }
+
+/* Barras horizontais */
+.rpt-bars-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.rpt-bar-wrap { display: flex; align-items: center; gap: 0.75rem; }
+.rpt-bar-label { font-size: 0.82rem; width: 140px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rpt-bar-track { flex: 1; height: 12px; background: rgba(255,255,255,0.07); border-radius: 6px; overflow: hidden; }
+.rpt-bar-fill  { height: 100%; border-radius: 6px; transition: width 0.4s ease; }
+.rpt-bar-val   { font-size: 0.8rem; font-weight: 700; width: 40px; text-align: right; flex-shrink: 0; }
+
+/* Tabelas */
+.rpt-table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
+.rpt-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+.rpt-table th {
+  background: rgba(255,255,255,0.04); padding: 0.6rem 0.75rem;
+  text-align: left; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.4px; color: var(--text-dim); white-space: nowrap;
+}
+.rpt-table td { padding: 0.6rem 0.75rem; border-top: 1px solid rgba(255,255,255,0.06); vertical-align: middle; }
+.rpt-table tr:hover td { background: rgba(255,255,255,0.03); }
+.rpt-num   { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.rpt-date  { color: var(--text-dim); white-space: nowrap; }
+.rpt-time  { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rpt-room-name { display: block; font-weight: 700; }
+.rpt-room-sub  { font-size: 0.75rem; color: var(--text-dim); }
+.rpt-student   { font-weight: 700; }
+.rpt-reason    { font-size: 0.8rem; color: var(--text-dim); }
+
+/* Gráfico de barras verticais XP */
+.rpt-chart-wrap {
+  display: flex; align-items: flex-end; gap: 6px;
+  background: rgba(0,0,0,0.2); border-radius: 12px; padding: 1rem 0.75rem 0.5rem;
+  overflow-x: auto; min-height: 140px;
+}
+.rpt-chart-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; min-width: 36px; }
+.rpt-chart-val { font-size: 0.65rem; color: var(--text-dim); min-height: 14px; text-align: center; }
+.rpt-chart-bar-wrap { display: flex; flex-direction: column-reverse; gap: 1px; min-height: 80px; justify-content: flex-start; }
+.rpt-chart-segment { width: 28px; border-radius: 3px 3px 0 0; transition: height 0.3s ease; }
+.rpt-chart-day { font-size: 0.65rem; color: var(--text-dim); white-space: nowrap; margin-top: 4px; }
+
+/* Legenda do gráfico */
+.rpt-legend { display: flex; flex-wrap: wrap; gap: 0.75rem 1.25rem; margin-top: 0.75rem; }
+.rpt-legend-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; }
+.rpt-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* Intervenções */
+.rpt-empty-green {
+  display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+  background: rgba(0,255,136,0.06); border: 1px solid rgba(0,255,136,0.2);
+  border-radius: 12px; padding: 2rem; text-align: center; color: var(--text-dim);
+}
+.rpt-interv-card {
+  background: rgba(255,68,68,0.05); border: 1px solid rgba(255,68,68,0.2);
+  border-radius: 12px; padding: 1rem; margin-bottom: 0.75rem;
+}
+.rpt-interv-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.rpt-interv-room   { font-weight: 800; font-size: 0.95rem; }
+.rpt-interv-count  { background: rgba(255,68,68,0.2); color: #FF4444; font-weight: 900; font-size: 0.85rem; padding: 2px 10px; border-radius: 20px; }
+.rpt-interv-list   { display: flex; flex-direction: column; gap: 0.3rem; }
+.rpt-interv-row    { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-dim); }
+.rpt-interv-teacher { color: var(--text); }
+.rpt-interv-time   { font-variant-numeric: tabular-nums; white-space: nowrap; }
