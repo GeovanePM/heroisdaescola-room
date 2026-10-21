@@ -1414,3 +1414,89 @@ body {
   0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(255,68,68,0.4); }
   50% { opacity: 0.8; box-shadow: 0 0 0 5px rgba(255,68,68,0); }
 }
+
+/* ═══ BLOCO 3 — SUPER ADMIN ═══ */
+
+.super-page { padding: 0 0 3rem; }
+
+/* Stats globais */
+.super-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem; margin-bottom: 2rem;
+}
+.super-stat {
+  display: flex; flex-direction: column; align-items: center;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 1.25rem 1rem; text-align: center;
+  transition: border-color 0.2s;
+}
+.super-stat:hover { border-color: var(--gold); }
+.super-stat-val { font-size: 2rem; font-weight: 900; color: var(--gold); line-height: 1; }
+.super-stat-lbl { font-size: 0.75rem; color: var(--text-dim); margin-top: 0.4rem; text-align: center; }
+
+/* Grade de escolas */
+.super-schools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+.super-school-card {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.9rem;
+  transition: border-color 0.2s, opacity 0.2s;
+}
+.super-school-card:hover { border-color: rgba(255,215,0,0.3); }
+.super-school-inactive { opacity: 0.55; }
+
+.super-school-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+.super-school-name { display: block; font-size: 1rem; font-weight: 900; }
+.super-school-city { display: block; font-size: 0.78rem; color: var(--text-dim); margin-top: 0.15rem; }
+.super-school-status {
+  font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+  white-space: nowrap; flex-shrink: 0;
+}
+
+/* Mini stats dentro do card */
+.super-school-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem; background: rgba(0,0,0,0.2); border-radius: 10px; padding: 0.6rem 0.5rem;
+}
+.sss-item { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.sss-val  { font-size: 1.05rem; font-weight: 900; color: var(--text); }
+.sss-lbl  { font-size: 0.62rem; color: var(--text-dim); text-align: center; line-height: 1.2; }
+
+.super-school-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+.super-eng-badge {
+  font-size: 0.72rem; font-weight: 700; padding: 3px 10px; border-radius: 20px; border: 1px solid;
+  white-space: nowrap;
+}
+.super-access-code {
+  font-family: 'Courier New', monospace; font-size: 0.75rem; font-weight: 700;
+  color: var(--text-dim); letter-spacing: 1px;
+}
+
+.super-school-actions { display: flex; gap: 0.5rem; }
+
+/* Modal maior para formulário com mais campos */
+.modal-lg { max-width: 520px; width: 100%; }
+
+/* Seção dentro do modal */
+.form-section-title {
+  font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px;
+  color: var(--gold); margin: 0 0 0.5rem; padding-bottom: 0.25rem;
+  border-bottom: 1px solid rgba(255,215,0,0.2);
+}
+
+/* Caixa de resultado após criação */
+.super-result-box {
+  background: rgba(0,255,136,0.06); border: 1px solid rgba(0,255,136,0.2);
+  border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem;
+}
+.super-result-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.super-result-key { font-size: 0.75rem; color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+.super-result-val { font-size: 0.88rem; font-weight: 700; text-align: right; }
+.super-result-code {
+  font-family: 'Courier New', monospace; font-size: 1rem; font-weight: 900;
+  color: var(--gold); letter-spacing: 1px;
+}

@@ -9,6 +9,7 @@ const ROLE_REDIRECT = {
   vice_director: '/app/supervisor',
   director:      '/app/diretor',
   admin:         '/app/admin',
+  super_admin:   '/app/super',
 }
 
 export default function Login() {

@@ -15,6 +15,7 @@ import SupervisorDashboard from './pages/app/SupervisorDashboard'
 import DirectorPanel       from './pages/app/DirectorPanel'
 import QRCodes             from './pages/app/QRCodes'
 import AdminPanel          from './pages/app/AdminPanel'
+import SuperAdminPanel     from './pages/app/SuperAdminPanel'
 import GamesHub            from './pages/app/GamesHub'
 import RankingTV           from './pages/RankingTV'
 import DirectorTV          from './pages/DirectorTV'
@@ -60,6 +61,7 @@ function AppProviders() {
               <Route path="qrcodes"   element={<ProtectedRoute roles={['director','admin','supervisor']}><QRCodes /></ProtectedRoute>} />
               <Route path="ranking-tv" element={<RankingTV />} />
               <Route path="admin"     element={<ProtectedRoute roles={['admin']}><AdminPanel /></ProtectedRoute>} />
+              <Route path="super"     element={<ProtectedRoute roles={['super_admin']}><SuperAdminPanel /></ProtectedRoute>} />
               <Route path="games"     element={<GamesHub />} />
             </Route>
 

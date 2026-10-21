@@ -3,7 +3,7 @@ import type { Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import superjson from 'superjson'
 
-export type StaffPayload = { id: string; schoolId: string; role: string; name: string }
+export type StaffPayload = { id: string; schoolId: string | null; role: string; name: string }
 
 export async function createContext({ req, res }: { req: Request; res: Response }) {
   let staff: StaffPayload | null = null
