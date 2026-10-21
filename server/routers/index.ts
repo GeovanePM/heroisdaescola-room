@@ -10,6 +10,7 @@ import { heroRouter }       from './hero.js'
 import { cardsRouter }      from './cards.js'
 import { scheduleRouter }   from './schedule.js'
 import { taskRouter }       from './task.js'
+import { studentRouter }    from './student.js'
 
 export const appRouter = router({
   auth:       authRouter,
@@ -23,6 +24,7 @@ export const appRouter = router({
   cards:      cardsRouter,
   schedule:   scheduleRouter,
   task:       taskRouter,
+  student:    studentRouter,
 })
 
 export type AppRouter = typeof appRouter

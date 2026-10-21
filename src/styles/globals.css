@@ -814,6 +814,34 @@ body {
 .trow-seg, .trow-level { color: var(--text-dim); }
 .trow-xp { font-weight: 800; color: var(--gold); text-align: right; }
 
+/* ── DIRETOR — TURMAS ───────────────────────────────────────── */
+.turmas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+.turma-card-dir { border: 1px solid; border-radius: var(--radius); padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; transition: transform 0.15s; }
+.turma-card-dir:hover { transform: translateY(-2px); }
+.turma-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+.turma-card-nome { display: block; font-size: 1.1rem; font-weight: 900; }
+.turma-card-turno { display: block; font-size: 0.75rem; color: var(--text-dim); }
+.turma-status-badge { font-size: 0.72rem; font-weight: 800; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+.turma-heroi { display: flex; align-items: center; gap: 0.5rem; }
+.turma-heroi-img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); }
+.turma-heroi-nome { font-size: 0.82rem; font-weight: 700; color: var(--gold); }
+.turma-xp-wrap { margin-top: auto; }
+.turma-xp-top { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
+.turma-xp-val { font-weight: 800; color: var(--gold); }
+.turma-nivel { color: var(--text-dim); }
+.turma-xp-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+.turma-xp-fill { height: 100%; background: linear-gradient(90deg, var(--gold), #ff8c00); border-radius: 3px; transition: width 0.5s ease; }
+
+/* ── DIRETOR — ALUNOS ───────────────────────────────────────── */
+.alunos-section { display: flex; flex-direction: column; gap: 1rem; }
+.alunos-header { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.alunos-count { font-size: 0.85rem; color: var(--text-dim); margin: 0; }
+.alunos-lista { display: flex; flex-direction: column; gap: 6px; }
+.aluno-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; }
+.aluno-num { min-width: 28px; font-size: 0.78rem; font-weight: 800; color: var(--gold); text-align: center; }
+.aluno-nome { flex: 1; font-weight: 600; font-size: 0.9rem; }
+.aluno-acoes { display: flex; gap: 6px; margin-left: auto; }
+
 /* ── RANKING TV ──────────────────────────────────────────────── */
 .tv-page {
   min-height: 100vh;
