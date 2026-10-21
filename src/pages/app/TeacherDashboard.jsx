@@ -28,6 +28,32 @@ function roomLabel(room) {
 
 // ── Aba Sala ──────────────────────────────────────────────────────────────────
 
+const STATUS_SALA = {
+  verde:    { label: 'Normal',         cor: '#00ff88', bg: 'rgba(0,255,136,0.08)'  },
+  amarelo:  { label: 'Aluno fora',     cor: '#FFD700', bg: 'rgba(255,215,0,0.08)'  },
+  laranja:  { label: 'Atenção',        cor: '#FF8C00', bg: 'rgba(255,140,0,0.08)'  },
+  vermelho: { label: 'Intervenção',    cor: '#FF4444', bg: 'rgba(255,68,68,0.08)'  },
+}
+
+function calcularStatus(allEvents) {
+  const sorted = [...allEvents].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+  const exits  = {}
+  let intervencao = false
+
+  for (const ev of sorted) {
+    if (ev.type === 'intervencao')           intervencao = true
+    if (ev.type === 'intervencao_encerrada') intervencao = false
+    if (ev.type === 'saida_sala'   && ev.student_ref) exits[ev.student_ref] = ev
+    if (ev.type === 'retorno_sala' && ev.student_ref) delete exits[ev.student_ref]
+  }
+
+  if (intervencao) return 'vermelho'
+  const alunosFora = Object.values(exits)
+  if (alunosFora.length === 0) return 'verde'
+  const maisAntigo = Math.max(...alunosFora.map(e => Date.now() - new Date(e.created_at)))
+  return maisAntigo >= 5 * 60 * 1000 ? 'laranja' : 'amarelo'
+}
+
 function SalaTab({ status, rooms, refetchStatus, classroomId, refetchEvents, events, wsEvents }) {
   const navigate = useNavigate()
   const [studentRef, setStudentRef] = useState('')
@@ -57,6 +83,9 @@ function SalaTab({ status, rooms, refetchStatus, classroomId, refetchEvents, eve
   }
 
   const allEvents = [...wsEvents, ...events].slice(0, 30)
+  const statusKey  = activeRoom ? calcularStatus(allEvents) : 'verde'
+  const statusInfo = STATUS_SALA[statusKey]
+  const emIntervencao = statusKey === 'vermelho'
 
   if (!activeRoom) return (
     <div className="checkin-prompt">
@@ -86,21 +115,43 @@ function SalaTab({ status, rooms, refetchStatus, classroomId, refetchEvents, eve
 
   return (
     <>
-      <div className="active-room-bar">
+      <div className="active-room-bar" style={{ borderColor: statusInfo.cor + '55', background: statusInfo.bg }}>
         <div className="active-room-info">
-          <span className="active-room-dot" />
+          <span className="active-room-dot" style={{ background: statusInfo.cor }} />
           <span className="active-room-label">{roomLabel(activeRoom)}</span>
+          <span className="room-status-badge" style={{ color: statusInfo.cor, borderColor: statusInfo.cor + '44', background: statusInfo.cor + '18' }}>
+            {statusInfo.label}
+          </span>
           <span className="active-room-since">
             desde {new Date(status.checked_in_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
-        <button
-          className="btn-checkout"
-          onClick={() => exitMutation.mutate()}
-          disabled={exitMutation.isPending}
-        >
-          🚪 Sair da sala
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          {emIntervencao ? (
+            <button
+              className="btn-intervencao-encerrar"
+              onClick={() => registerMutation.mutate({ classroomId, type: 'intervencao_encerrada' })}
+              disabled={registerMutation.isPending}
+            >
+              ✅ Encerrar intervenção
+            </button>
+          ) : (
+            <button
+              className="btn-intervencao"
+              onClick={() => { if (confirm('Solicitar intervenção da supervisão?')) registerMutation.mutate({ classroomId, type: 'intervencao' }) }}
+              disabled={registerMutation.isPending}
+            >
+              🚨 Solicitar intervenção
+            </button>
+          )}
+          <button
+            className="btn-checkout"
+            onClick={() => exitMutation.mutate()}
+            disabled={exitMutation.isPending}
+          >
+            🚪 Sair
+          </button>
+        </div>
       </div>
 
       <div className="sala-grid">

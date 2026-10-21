@@ -1,7 +1,31 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { trpc } from '../../lib/trpc'
 
 const SEG_LABEL    = { fund1: 'Fund. I', fund2: 'Fund. II', medio: 'Médio' }
+
+const STATUS_SALA = {
+  verde:    { label: 'Normal',      cor: '#00ff88', bg: 'rgba(0,255,136,0.1)'  },
+  amarelo:  { label: 'Aluno fora',  cor: '#FFD700', bg: 'rgba(255,215,0,0.1)'  },
+  laranja:  { label: 'Atenção',     cor: '#FF8C00', bg: 'rgba(255,140,0,0.1)'  },
+  vermelho: { label: 'Intervenção', cor: '#FF4444', bg: 'rgba(255,68,68,0.1)'  },
+}
+
+function calcularStatus(events) {
+  const sorted = [...events].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+  const exits  = {}
+  let intervencao = false
+  for (const ev of sorted) {
+    if (ev.type === 'intervencao')           intervencao = true
+    if (ev.type === 'intervencao_encerrada') intervencao = false
+    if (ev.type === 'saida_sala'   && ev.student_ref) exits[ev.student_ref] = ev
+    if (ev.type === 'retorno_sala' && ev.student_ref) delete exits[ev.student_ref]
+  }
+  if (intervencao) return 'vermelho'
+  const fora = Object.values(exits)
+  if (fora.length === 0) return 'verde'
+  const maisAntigo = Math.max(...fora.map(e => Date.now() - new Date(e.created_at)))
+  return maisAntigo >= 5 * 60 * 1000 ? 'laranja' : 'amarelo'
+}
 const TURNO_LABEL  = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' }
 const TYPE_LABEL   = { tarefa: 'Tarefa', prova: 'Estudo p/ Prova' }
 const STATUS_COLOR = { active: '#00ff88', completed: '#FFD700', expired: '#FF4444' }
@@ -91,18 +115,33 @@ function VisaoGeral({ classrooms, ranking, tasks }) {
 // ── Turmas ────────────────────────────────────────────────────────────────────
 
 function Turmas({ classrooms }) {
-  const STATUS_SALA = {
-    verde:     { label: 'Normal',      cor: '#00ff88', bg: 'rgba(0,255,136,0.1)'  },
-    amarelo:   { label: 'Atenção',     cor: '#FFD700', bg: 'rgba(255,215,0,0.1)'  },
-    laranja:   { label: 'Alerta',      cor: '#FF8C00', bg: 'rgba(255,140,0,0.1)'  },
-    vermelho:  { label: 'Intervenção', cor: '#FF4444', bg: 'rgba(255,68,68,0.1)'  },
-  }
+  const [liveEvents, setLiveEvents] = useState([])
+  const wsRef = useRef(null)
+  const { data: recentEvents = [] } = trpc.supervisor.recentEvents.useQuery({ limit: 200 })
+
+  useEffect(() => {
+    const apiBase = (import.meta.env.VITE_API_URL ?? import.meta.env.API_URL ?? 'http://localhost:3001').replace(/^http/, 'ws')
+    const ws = new WebSocket(`${apiBase}/ws?roomId=supervisor`)
+    wsRef.current = ws
+    ws.onmessage = (e) => {
+      try {
+        const data = JSON.parse(e.data)
+        if (data.type === 'event') setLiveEvents(prev => [data.event, ...prev.slice(0, 199)])
+      } catch {}
+    }
+    return () => ws.close()
+  }, [])
+
+  const allEvents = useMemo(() => [...liveEvents, ...recentEvents], [liveEvents, recentEvents])
 
   return (
     <div className="turmas-grid">
       {classrooms.map(room => {
-        const s = STATUS_SALA['verde']
-        const xpPct = Math.min(((room.xp ?? 0) % 1000) / 10, 100)
+        const evsSala  = allEvents.filter(e => e.classroom_id === room.id)
+        const statusKey = calcularStatus(evsSala)
+        const s        = STATUS_SALA[statusKey]
+        const xpPct    = Math.min(((room.xp ?? 0) % 1000) / 10, 100)
+
         return (
           <div key={room.id} className="turma-card-dir" style={{ borderColor: s.cor + '55', background: s.bg }}>
             <div className="turma-card-top">
@@ -111,7 +150,7 @@ function Turmas({ classrooms }) {
                 <span className="turma-card-turno">{TURNO_LABEL[room.shift] ?? room.shift} · {SEG_LABEL[room.segment]}</span>
               </div>
               <span className="turma-status-badge" style={{ color: s.cor, background: s.cor + '22', border: `1px solid ${s.cor}44` }}>
-                {s.label}
+                {statusKey === 'vermelho' && '🚨 '}{s.label}
               </span>
             </div>
 
@@ -128,7 +167,7 @@ function Turmas({ classrooms }) {
                 <span className="turma-nivel">Nível {room.level ?? 1}</span>
               </div>
               <div className="turma-xp-bar">
-                <div className="turma-xp-fill" style={{ width: `${xpPct}%` }} />
+                <div className="turma-xp-fill" style={{ width: `${xpPct}%`, background: `linear-gradient(90deg, ${s.cor}, ${s.cor}aa)` }} />
               </div>
             </div>
           </div>

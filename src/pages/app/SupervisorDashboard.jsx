@@ -4,11 +4,37 @@ import { trpc } from '../../lib/trpc'
 const SEG_LABEL   = { fund1: 'Fund. I', fund2: 'Fund. II', medio: 'Médio' }
 const SHIFT_LABEL = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' }
 const EVENT_LABEL = {
-  participacao: { label: 'Participou',   icon: '⚡', color: '#00ff88' },
-  pontualidade: { label: 'Pontual',      icon: '⏱️', color: '#FFD700' },
-  saida_sala:   { label: 'Saiu da sala', icon: '🚪', color: '#FF8C00' },
-  retorno_sala: { label: 'Retornou',     icon: '↩️', color: '#aaa'    },
-  disciplina:   { label: 'Disciplina',   icon: '⚠️', color: '#FF4444' },
+  participacao:          { label: 'Participou',        icon: '⚡', color: '#00ff88' },
+  pontualidade:          { label: 'Pontual',           icon: '⏱️', color: '#FFD700' },
+  saida_sala:            { label: 'Saiu da sala',      icon: '🚪', color: '#FF8C00' },
+  retorno_sala:          { label: 'Retornou',          icon: '↩️', color: '#aaa'    },
+  disciplina:            { label: 'Disciplina',        icon: '⚠️', color: '#FF4444' },
+  intervencao:           { label: 'Intervenção',       icon: '🚨', color: '#FF4444' },
+  intervencao_encerrada: { label: 'Interv. encerrada', icon: '✅', color: '#00ff88' },
+}
+
+const STATUS_COR = {
+  verde:    { cor: '#00ff88', label: 'Normal'      },
+  amarelo:  { cor: '#FFD700', label: 'Aluno fora'  },
+  laranja:  { cor: '#FF8C00', label: 'Atenção'     },
+  vermelho: { cor: '#FF4444', label: 'Intervenção' },
+}
+
+function calcularStatusSala(events) {
+  const sorted = [...events].sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
+  const exits  = {}
+  let intervencao = false
+  for (const ev of sorted) {
+    if (ev.type === 'intervencao')           intervencao = true
+    if (ev.type === 'intervencao_encerrada') intervencao = false
+    if (ev.type === 'saida_sala'   && ev.student_ref) exits[ev.student_ref] = ev
+    if (ev.type === 'retorno_sala' && ev.student_ref) delete exits[ev.student_ref]
+  }
+  if (intervencao) return 'vermelho'
+  const fora = Object.values(exits)
+  if (fora.length === 0) return 'verde'
+  const maisAntigo = Math.max(...fora.map(e => Date.now() - new Date(e.created_at)))
+  return maisAntigo >= 5 * 60 * 1000 ? 'laranja' : 'amarelo'
 }
 
 function roomName(room) {
@@ -126,16 +152,21 @@ export default function SupervisorDashboard() {
       {/* Grade de salas */}
       <div className="classrooms-grid" style={{ marginBottom: '2.5rem' }}>
         {classrooms.map(room => {
-          const occ   = occupiedMap[room.id]
-          const exits = exitsByRoom[room.id] ?? []
+          const occ       = occupiedMap[room.id]
+          const exits     = exitsByRoom[room.id] ?? []
+          const evsSala   = allEvents.filter(e => e.classroom_id === room.id)
+          const statusKey = occ ? calcularStatusSala(evsSala) : 'verde'
+          const status    = STATUS_COR[statusKey]
 
           return (
-            <div key={room.id} className={`classroom-card ${occ ? 'classroom-occupied' : ''} ${exits.length > 0 ? 'classroom-has-exits' : ''}`}>
+            <div key={room.id} className={`classroom-card ${occ ? 'classroom-occupied' : ''} ${exits.length > 0 ? 'classroom-has-exits' : ''}`}
+              style={{ borderColor: occ ? status.cor + '66' : undefined }}>
 
               {/* Status */}
               <div className="cc-status">
-                <span className={`cc-dot ${occ ? 'cc-dot-on' : 'cc-dot-off'}`} />
-                <span className="cc-status-label">{occ ? 'Ocupada' : 'Vazia'}</span>
+                <span className={`cc-dot ${occ ? 'cc-dot-on' : 'cc-dot-off'}`} style={{ background: occ ? status.cor : undefined }} />
+                <span className="cc-status-label">{occ ? status.label : 'Vazia'}</span>
+                {statusKey === 'vermelho' && <span className="cc-intervencao-badge">🚨 INTERVENÇÃO</span>}
               </div>
 
               {/* Nome */}

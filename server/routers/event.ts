@@ -6,11 +6,13 @@ import { sendTelegram } from '../telegram.js'
 import { currentPeriodLocal } from './schedule.js'
 
 const XP_TABLE: Record<string, number> = {
-  saida_sala:   0,
-  retorno_sala: 0,
-  disciplina:  -5,
-  participacao: 10,
-  pontualidade: 5,
+  saida_sala:            0,
+  retorno_sala:          0,
+  disciplina:           -5,
+  participacao:         10,
+  pontualidade:          5,
+  intervencao:           0,
+  intervencao_encerrada: 0,
 }
 
 async function notifySupervisors(schoolId: string, message: string) {
@@ -31,7 +33,7 @@ export const eventRouter = router({
   register: protectedProcedure
     .input(z.object({
       classroomId: z.string().uuid(),
-      type:        z.enum(['saida_sala', 'retorno_sala', 'disciplina', 'participacao', 'pontualidade']),
+      type:        z.enum(['saida_sala', 'retorno_sala', 'disciplina', 'participacao', 'pontualidade', 'intervencao', 'intervencao_encerrada']),
       studentRef:  z.string().optional(),
       notes:       z.string().optional(),
     }))
@@ -115,6 +117,16 @@ export const eventRouter = router({
             await notifySupervisors(schoolId, msg)
           }
         }, 5 * 60 * 1000)
+      }
+
+      // Intervenção: alerta imediato para supervisores e diretores
+      if (input.type === 'intervencao') {
+        const { data: room } = await supabase
+          .from('room_classrooms').select('name, shift').eq('id', input.classroomId).single()
+        const SHIFT: Record<string, string> = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' }
+        const shift = room?.shift ? (SHIFT[room.shift] ?? room.shift) : ''
+        const msg = `🚨 <b>INTERVENÇÃO SOLICITADA</b>\n🏫 Sala: <b>${room?.name ?? input.classroomId}</b> (${shift})\n👨‍🏫 Professor solicitou presença imediata.`
+        await notifySupervisors(ctx.staff.schoolId, msg)
       }
 
       return event
