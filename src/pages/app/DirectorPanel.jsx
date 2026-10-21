@@ -114,10 +114,33 @@ function VisaoGeral({ classrooms, ranking, tasks }) {
 
 // ── Turmas ────────────────────────────────────────────────────────────────────
 
+const FORM_TURMA_EMPTY = { name: '', segment: 'fund1', shift: 'manha', studentsText: '' }
+
 function Turmas({ classrooms }) {
+  const utils = trpc.useUtils()
   const [liveEvents, setLiveEvents] = useState([])
   const wsRef = useRef(null)
   const { data: recentEvents = [] } = trpc.supervisor.recentEvents.useQuery({ limit: 200 })
+
+  const [modal, setModal]   = useState(false)
+  const [form, setForm]     = useState(FORM_TURMA_EMPTY)
+  const [err, setErr]       = useState('')
+
+  const createMut = trpc.admin.classroomCreate.useMutation({
+    onSuccess(data) {
+      utils.supervisor.allClassrooms.invalidate()
+      setModal(false)
+      setForm(FORM_TURMA_EMPTY)
+      if (data.studentCount > 0) alert(`Turma criada com ${data.studentCount} aluno(s)!`)
+    },
+    onError(e) { setErr(e.message) },
+  })
+
+  function salvar() {
+    if (!form.name.trim()) { setErr('Nome obrigatório'); return }
+    const students = form.studentsText.split('\n').map(s => s.trim()).filter(Boolean)
+    createMut.mutate({ name: form.name, segment: form.segment, shift: form.shift, ...(students.length ? { students } : {}) })
+  }
 
   useEffect(() => {
     const apiBase = (import.meta.env.VITE_API_URL ?? import.meta.env.API_URL ?? 'http://localhost:3001').replace(/^http/, 'ws')
@@ -135,7 +158,14 @@ function Turmas({ classrooms }) {
   const allEvents = useMemo(() => [...liveEvents, ...recentEvents], [liveEvents, recentEvents])
 
   return (
-    <div className="turmas-grid">
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+        <button className="btn-admin-add" onClick={() => { setErr(''); setForm(FORM_TURMA_EMPTY); setModal(true) }}>
+          + Nova Turma
+        </button>
+      </div>
+
+      <div className="turmas-grid">
       {classrooms.map(room => {
         const evsSala  = allEvents.filter(e => e.classroom_id === room.id)
         const statusKey = calcularStatus(evsSala)
@@ -174,6 +204,66 @@ function Turmas({ classrooms }) {
         )
       })}
       {classrooms.length === 0 && <p className="empty-state">Nenhuma turma cadastrada.</p>}
+      </div>
+
+      {modal && (
+        <div className="modal-overlay" onClick={() => setModal(false)}>
+          <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Nova Turma</h3>
+              <button className="modal-close" onClick={() => setModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              {err && <p className="form-error">{err}</p>}
+              <div className="form-group">
+                <label className="form-label">Nome da turma</label>
+                <input className="form-input" placeholder="Ex: 6-A, 3º Ano B..." value={form.name}
+                  onChange={e => setForm(f => ({ ...f, name: e.target.value }))} autoFocus />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Segmento</label>
+                  <select className="form-select" value={form.segment} onChange={e => setForm(f => ({ ...f, segment: e.target.value }))}>
+                    <option value="fund1">Fund. I (1º ao 5º)</option>
+                    <option value="fund2">Fund. II (6º ao 9º)</option>
+                    <option value="medio">Ensino Médio</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Turno</label>
+                  <select className="form-select" value={form.shift} onChange={e => setForm(f => ({ ...f, shift: e.target.value }))}>
+                    <option value="manha">Manhã</option>
+                    <option value="tarde">Tarde</option>
+                    <option value="noite">Noite</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Alunos (opcional — um nome por linha)</label>
+                <textarea
+                  className="form-input"
+                  rows={8}
+                  placeholder={"João da Silva\nMaria Oliveira\nPedro Santos\n..."}
+                  value={form.studentsText}
+                  onChange={e => setForm(f => ({ ...f, studentsText: e.target.value }))}
+                  style={{ resize: 'vertical', fontFamily: 'inherit' }}
+                />
+                <p className="form-hint">
+                  {form.studentsText.split('\n').filter(s => s.trim()).length > 0
+                    ? `${form.studentsText.split('\n').filter(s => s.trim()).length} aluno(s) serão cadastrados com nº de chamada automático.`
+                    : 'Cole a lista de alunos ou deixe em branco para adicionar depois.'}
+                </p>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-modal-cancel" onClick={() => setModal(false)}>Cancelar</button>
+              <button className="btn-modal-confirm" onClick={salvar} disabled={createMut.isPending}>
+                {createMut.isPending ? 'Criando...' : 'Criar turma'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
