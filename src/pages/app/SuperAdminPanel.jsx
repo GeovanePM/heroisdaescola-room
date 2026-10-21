@@ -117,7 +117,7 @@ export default function SuperAdminPanel() {
                     className="super-school-status"
                     style={{
                       color:      school.active ? '#00ff88' : '#666',
-                      background: school.active ? 'rgba(0,255,136,0.1)' : 'rgba(255,255,255,0.04)',
+                      background: school.active ? 'rgba(0,255,136,0.1)' : 'rgba(0,0,0,0.06)',
                     }}
                   >
                     {school.active ? '● Ativa' : '○ Inativa'}
