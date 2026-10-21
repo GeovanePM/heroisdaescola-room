@@ -48,7 +48,7 @@ export default function QRCodes() {
     <div className="qr-page">
       <header className="page-header">
         <h1 className="page-title">QR Codes das Salas</h1>
-        <p className="page-subtitle">Professor escaneia para fazer check-in na sala</p>
+        <p className="page-subtitle">Professor escaneia para registrar entrada na sala</p>
       </header>
 
       <button className="btn-print" onClick={handlePrint}>🖨️ Imprimir todos</button>

@@ -247,8 +247,8 @@ function StaffTab() {
   return (
     <div>
       <div className="admin-section-header">
-        <h2 className="section-label">Staff</h2>
-        <button className="btn-admin-add" onClick={openCreate}>+ Novo Staff</button>
+        <h2 className="section-label">Equipe</h2>
+        <button className="btn-admin-add" onClick={openCreate}>+ Novo Funcionário</button>
       </div>
 
       {isLoading ? <p className="empty-state">Carregando...</p> : (
@@ -287,7 +287,7 @@ function StaffTab() {
                 </tr>
               ))}
               {staff.length === 0 && (
-                <tr><td colSpan={5} className="td-empty">Nenhum staff cadastrado.</td></tr>
+                <tr><td colSpan={5} className="td-empty">Nenhum funcionário cadastrado.</td></tr>
               )}
             </tbody>
           </table>
@@ -297,7 +297,7 @@ function StaffTab() {
       {/* Modal criar/editar staff */}
       {modal && (
         <Modal
-          title={modal === 'create' ? 'Novo Staff' : `Editar: ${modal.name}`}
+          title={modal === 'create' ? 'Novo Funcionário' : `Editar: ${modal.name}`}
           onClose={() => setModal(null)}
           footer={
             <>
@@ -334,10 +334,10 @@ function StaffTab() {
           </div>
           {modal !== 'create' && (
             <div className="form-group">
-              <label className="form-label">Telegram Chat ID (alertas)</label>
+              <label className="form-label">Telegram — ID do Chat (alertas)</label>
               <input className="form-input" placeholder="Ex: 123456789" value={form.telegramChatId} onChange={e => setForm(f => ({ ...f, telegramChatId: e.target.value }))} />
               <div className="telegram-help">
-                <span className="telegram-help-title">ℹ️ Como obter o Chat ID:</span>
+                <span className="telegram-help-title">ℹ️ Como obter o ID do Chat:</span>
                 <ol className="telegram-help-steps">
                   <li>Abra <strong>@seguranca_escolar_bot</strong> no Telegram → envie <code>/start</code></li>
                   <li>Abra <strong>@userinfobot</strong> no Telegram → envie <code>/start</code></li>
@@ -403,7 +403,7 @@ export default function AdminPanel() {
       <div className="admin-tabs">
         {['salas', 'staff', 'grade', 'herois', 'cartas'].map(t => (
           <button key={t} className={`admin-tab ${tab === t ? 'admin-tab-active' : ''}`} onClick={() => setTab(t)}>
-            {{ salas: 'Salas', staff: 'Staff', grade: 'Grade Horária', herois: 'Heróis', cartas: 'Cartas' }[t]}
+            {{ salas: 'Salas', staff: 'Equipe', grade: 'Grade Horária', herois: 'Heróis', cartas: 'Cartas' }[t]}
           </button>
         ))}
       </div>

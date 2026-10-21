@@ -206,10 +206,10 @@ export default function SupervisorDashboard() {
         {classrooms.length === 0 && <p className="empty-state">Nenhuma sala cadastrada.</p>}
       </div>
 
-      {/* Feed ao vivo */}
+      {/* Eventos ao vivo */}
       <section>
         <h2 className="section-label">
-          Feed ao vivo
+          Eventos ao vivo
           {liveEvents.length > 0 && <span className="live-dot">● AO VIVO</span>}
         </h2>
         <div className="feed-list">

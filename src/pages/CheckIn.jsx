@@ -61,7 +61,7 @@ export default function CheckIn() {
     <div className="checkin-page">
       <div className="checkin-card checkin-success">
         <div className="checkin-ok-icon">✓</div>
-        <h2 className="checkin-title">Check-in realizado!</h2>
+        <h2 className="checkin-title">Entrada registrada!</h2>
         <p className="checkin-room-name">{roomLabel}</p>
         <p className="checkin-sub">Redirecionando para o painel...</p>
       </div>

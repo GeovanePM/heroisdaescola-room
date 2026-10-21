@@ -84,7 +84,7 @@ export default function SuperAdminPanel() {
           </div>
           <div className="super-stat">
             <span className="super-stat-val">{stats.activeStaff}</span>
-            <span className="super-stat-lbl">Staff ativo</span>
+            <span className="super-stat-lbl">Funcionários ativos</span>
           </div>
           <div className="super-stat">
             <span className="super-stat-val">{stats.eventsThisWeek}</span>
@@ -131,7 +131,7 @@ export default function SuperAdminPanel() {
                   </div>
                   <div className="sss-item">
                     <span className="sss-val">{school.staffCount}</span>
-                    <span className="sss-lbl">Staff</span>
+                    <span className="sss-lbl">Funcionários</span>
                   </div>
                   <div className="sss-item">
                     <span className="sss-val">{school.eventsToday}</span>

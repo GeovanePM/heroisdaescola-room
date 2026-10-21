@@ -546,7 +546,7 @@ export default function TeacherDashboard() {
         <p className="page-subtitle">
           {activeRoom
             ? `Você está em: ${roomLabel(activeRoom)}`
-            : 'Escaneie o QR Code da sala para fazer check-in'}
+            : 'Escaneie o QR Code da sala para registrar sua entrada'}
         </p>
       </header>
 
