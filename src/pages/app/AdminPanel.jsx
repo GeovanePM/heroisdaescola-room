@@ -31,12 +31,16 @@ function ClassroomTab() {
   const { data: classrooms = [], isLoading } = trpc.admin.classroomList.useQuery()
 
   const [modal, setModal] = useState(null)  // null | 'create' | roomObj
-  const [form, setForm]   = useState({ name: '', segment: 'fund1', shift: 'manha' })
+  const [form, setForm]   = useState({ name: '', segment: 'fund1', shift: 'manha', studentsText: '' })
   const [err, setErr]     = useState('')
 
   const createMut = trpc.admin.classroomCreate.useMutation({
-    onSuccess() { utils.admin.classroomList.invalidate(); setModal(null) },
-    onError(e)  { setErr(e.message) },
+    onSuccess(data) {
+      utils.admin.classroomList.invalidate()
+      setModal(null)
+      if (data.studentCount > 0) alert(`Turma criada com ${data.studentCount} aluno(s) cadastrado(s)!`)
+    },
+    onError(e) { setErr(e.message) },
   })
   const updateMut = trpc.admin.classroomUpdate.useMutation({
     onSuccess() { utils.admin.classroomList.invalidate(); setModal(null) },
@@ -44,13 +48,13 @@ function ClassroomTab() {
   })
 
   function openCreate() {
-    setForm({ name: '', segment: 'fund1', shift: 'manha' })
+    setForm({ name: '', segment: 'fund1', shift: 'manha', studentsText: '' })
     setErr('')
     setModal('create')
   }
 
   function openEdit(room) {
-    setForm({ name: room.name, segment: room.segment, shift: room.shift ?? 'manha' })
+    setForm({ name: room.name, segment: room.segment, shift: room.shift ?? 'manha', studentsText: '' })
     setErr('')
     setModal(room)
   }
@@ -58,9 +62,13 @@ function ClassroomTab() {
   function submit() {
     if (!form.name.trim()) { setErr('Nome obrigatório'); return }
     if (modal === 'create') {
-      createMut.mutate(form)
+      const students = form.studentsText
+        .split('\n')
+        .map(s => s.trim())
+        .filter(Boolean)
+      createMut.mutate({ name: form.name, segment: form.segment, shift: form.shift, ...(students.length ? { students } : {}) })
     } else {
-      updateMut.mutate({ id: modal.id, ...form })
+      updateMut.mutate({ id: modal.id, name: form.name, segment: form.segment, shift: form.shift })
     }
   }
 
@@ -155,6 +163,24 @@ function ClassroomTab() {
               <option value="noite">Noite</option>
             </select>
           </div>
+          {modal === 'create' && (
+            <div className="form-group">
+              <label className="form-label">Alunos (opcional — um por linha)</label>
+              <textarea
+                className="form-input"
+                rows={6}
+                placeholder={"João da Silva\nMaria Oliveira\nPedro Santos"}
+                value={form.studentsText}
+                onChange={e => setForm(f => ({ ...f, studentsText: e.target.value }))}
+                style={{ resize: 'vertical', fontFamily: 'inherit' }}
+              />
+              <p className="form-hint">
+                {form.studentsText.split('\n').filter(s => s.trim()).length > 0
+                  ? `${form.studentsText.split('\n').filter(s => s.trim()).length} aluno(s) serão cadastrados com nº de chamada automático.`
+                  : 'Cole a lista de alunos ou deixe em branco para adicionar depois.'}
+              </p>
+            </div>
+          )}
         </Modal>
       )}
     </div>

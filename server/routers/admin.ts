@@ -25,18 +25,32 @@ export const adminRouter = router({
 
   classroomCreate: protectedProcedure
     .input(z.object({
-      name:    z.string().min(1),
-      segment: z.enum(['fund1', 'fund2', 'medio']),
-      shift:   z.enum(['manha', 'tarde', 'noite']),
+      name:     z.string().min(1),
+      segment:  z.enum(['fund1', 'fund2', 'medio']),
+      shift:    z.enum(['manha', 'tarde', 'noite']),
+      students: z.array(z.string().min(1).max(100)).optional(),
     }))
     .mutation(async ({ input, ctx }) => {
       requireAdmin(ctx.staff.role)
+      const { students, ...classroomFields } = input
       const { data, error } = await supabase
         .from('room_classrooms')
-        .insert({ ...input, school_id: ctx.staff.schoolId })
+        .insert({ ...classroomFields, school_id: ctx.staff.schoolId })
         .select().single()
       if (error) throw new Error(error.message)
-      return data
+
+      if (students && students.length > 0) {
+        const rows = students.map((name, i) => ({
+          classroom_id: data.id,
+          school_id:    ctx.staff.schoolId,
+          name:         name.trim(),
+          call_number:  i + 1,
+        }))
+        const { error: sErr } = await supabase.from('room_students').insert(rows)
+        if (sErr) throw new Error(sErr.message)
+      }
+
+      return { ...data, studentCount: students?.length ?? 0 }
     }),
 
   classroomUpdate: protectedProcedure
