@@ -1805,3 +1805,173 @@ body {
 }
 .materias-empty p { margin-bottom: 0.5rem; }
 .materias-empty strong { color: var(--text); }
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVO — MOBILE & TABLET
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Mobile header (hamburger) ──────────────────────────────── */
+.app-mobile-header {
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: #1E2A3A;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+.hamburger {
+  display: flex; flex-direction: column; gap: 5px;
+  background: none; border: none; cursor: pointer; padding: 4px; flex-shrink: 0;
+}
+.hamburger span {
+  display: block; width: 22px; height: 2px;
+  background: #E8EDF5; border-radius: 2px; transition: all 0.2s;
+}
+.mobile-logo { display: flex; align-items: center; gap: 6px; flex: 1; }
+.mobile-user-name { font-size: 0.82rem; font-weight: 700; color: rgba(232,237,245,0.7); flex-shrink: 0; }
+
+/* ── Sidebar drawer overlay ─────────────────────────────────── */
+.sidebar-backdrop {
+  display: none;
+  position: fixed; inset: 0; z-index: 299;
+  background: rgba(0,0,0,0.5); backdrop-filter: blur(2px);
+}
+.sidebar-close {
+  display: none;
+  margin-left: auto; background: none; border: none;
+  color: rgba(232,237,245,0.5); font-size: 1.5rem; cursor: pointer; line-height: 1;
+  padding: 0 4px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLET  768px – 1024px
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+  .app-sidebar { width: 200px; padding: 1.25rem 0.75rem; }
+  .app-main    { padding: 1.5rem; }
+  .page-title  { font-size: 1.5rem; }
+
+  .super-schools-grid { grid-template-columns: 1fr 1fr; }
+  .turmas-grid        { grid-template-columns: 1fr 1fr; }
+  .director-stats     { grid-template-columns: repeat(2, 1fr); }
+  .super-stats        { grid-template-columns: repeat(2, 1fr); }
+  .admin-table-wrap   { overflow-x: auto; }
+
+  .modal    { max-width: 95vw; }
+  .modal-lg { max-width: 95vw; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE  < 768px
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* App shell: sidebar vira drawer */
+  .app-shell { flex-direction: column; }
+
+  .app-mobile-header { display: flex; }
+
+  .app-sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; z-index: 300;
+    width: 260px; transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    border-right: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+  }
+  .app-sidebar.sidebar-open { transform: translateX(0); }
+
+  .sidebar-backdrop { display: block; }
+  .sidebar-close    { display: block; }
+
+  .app-main { padding: 1rem; }
+
+  /* Tipografia */
+  .page-title    { font-size: 1.3rem; }
+  .page-subtitle { font-size: 0.82rem; }
+
+  /* Cabeçalho diretor: empilhar relógio */
+  .page-header { flex-direction: column; align-items: flex-start !important; }
+  .director-relogio { align-items: flex-start; width: 100%; }
+  .director-relogio-hora { font-size: 1.25rem; }
+
+  /* Grids → 1 coluna */
+  .super-schools-grid,
+  .turmas-grid,
+  .director-stats,
+  .super-stats,
+  .sala-grid,
+  .qr-grid,
+  .alunos-lista { grid-template-columns: 1fr !important; }
+
+  /* Rankings */
+  .ranking-thead { display: none; }
+  .ranking-trow  { grid-template-columns: 32px 1fr auto; gap: 0.5rem; }
+  .trow-seg, .trow-level { display: none; }
+
+  /* Tabs: scroll horizontal */
+  .room-tabs, .teacher-tabs, .admin-tabs, .director-tabs {
+    overflow-x: auto; flex-wrap: nowrap; padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .room-tab, .teacher-tab, .admin-tab { white-space: nowrap; flex-shrink: 0; }
+
+  /* Tabelas: scroll horizontal */
+  .admin-table-wrap  { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .admin-table       { min-width: 520px; }
+
+  /* Formulários */
+  .form-input, .form-select { font-size: 1rem; }
+
+  /* Modais: tela cheia no mobile */
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal, .modal-lg {
+    max-width: 100%; width: 100%;
+    border-radius: 20px 20px 0 0;
+    max-height: 92vh;
+  }
+
+  /* Cards de turma */
+  .turma-card-dir { padding: 1rem; }
+
+  /* Alunos header */
+  .alunos-header { flex-direction: column; align-items: flex-start; }
+  .alunos-header .form-select { width: 100%; max-width: 100% !important; }
+
+  /* Ações de aluno */
+  .aluno-row { flex-wrap: wrap; }
+  .aluno-acoes { width: 100%; justify-content: flex-end; }
+
+  /* Super admin cards */
+  .super-school-card { padding: 1rem; }
+  .super-school-actions { flex-wrap: wrap; }
+
+  /* Director task */
+  .director-task-row { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .dt-progress { width: 100%; }
+
+  /* Relatórios */
+  .rpt-header { flex-direction: column; gap: 0.5rem; }
+
+  /* Botões de ação em tabela */
+  .action-cell { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  /* QR codes */
+  .qr-card { padding: 1rem; }
+
+  /* Upload lista alunos */
+  .students-preview-list { flex-direction: column; }
+  .student-chip { width: 100%; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE PEQUENO  < 400px
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 400px) {
+  .app-main  { padding: 0.75rem; }
+  .page-title { font-size: 1.15rem; }
+  .btn-admin-add { font-size: 0.8rem; padding: 8px 14px; }
+  .modal-body { padding: 1rem; }
+  .modal-header, .modal-footer { padding: 0.75rem 1rem; }
+}
