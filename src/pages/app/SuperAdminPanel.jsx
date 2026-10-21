@@ -20,6 +20,7 @@ export default function SuperAdminPanel() {
   const [result, setResult] = useState(null)
   const [form,   setForm]   = useState(FORM_EMPTY)
   const [err,    setErr]    = useState('')
+  const [credModal, setCredModal] = useState(null) // { email, name, password }
 
   const { data: stats }              = trpc.superAdmin.globalStats.useQuery()
   const { data: schools = [], isLoading } = trpc.superAdmin.listSchools.useQuery()
@@ -35,6 +36,11 @@ export default function SuperAdminPanel() {
 
   const toggleMut = trpc.superAdmin.toggleSchool.useMutation({
     onSuccess() { utils.superAdmin.listSchools.invalidate() },
+  })
+
+  const resetMut = trpc.superAdmin.resetDirectorPassword.useMutation({
+    onSuccess(data) { setCredModal(data) },
+    onError(e) { alert('Erro: ' + e.message) },
   })
 
   function fecharModal() {
@@ -149,6 +155,16 @@ export default function SuperAdminPanel() {
 
                 <div className="super-school-actions">
                   <button
+                    className="btn-sm btn-sm-ghost"
+                    onClick={() => {
+                      if (confirm(`Isso vai gerar uma NOVA senha para o diretor de "${school.name}". Confirmar?`))
+                        resetMut.mutate({ schoolId: school.id })
+                    }}
+                    disabled={resetMut.isPending}
+                  >
+                    🔑 Credenciais
+                  </button>
+                  <button
                     className={school.active ? 'btn-sm btn-sm-danger' : 'btn-sm btn-sm-ghost'}
                     onClick={() => {
                       const acao = school.active ? 'desativar' : 'ativar'
@@ -215,6 +231,44 @@ export default function SuperAdminPanel() {
               <button className="btn-modal-confirm" onClick={criar} disabled={createMut.isPending}>
                 {createMut.isPending ? 'Criando...' : 'Criar escola'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal — credenciais do diretor */}
+      {credModal && (
+        <div className="modal-overlay" onClick={() => setCredModal(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>🔑 Credenciais do Diretor</h3>
+              <button className="modal-close" onClick={() => setCredModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p className="form-hint" style={{ marginBottom: '1rem' }}>
+                Uma nova senha foi gerada. Compartilhe com o diretor.
+              </p>
+              <div className="super-result-box">
+                <div className="super-result-row">
+                  <span className="super-result-key">Diretor</span>
+                  <span className="super-result-val">{credModal.name}</span>
+                </div>
+                <div className="super-result-row">
+                  <span className="super-result-key">E-mail</span>
+                  <span className="super-result-val">{credModal.email}</span>
+                </div>
+                <div className="super-result-row">
+                  <span className="super-result-key">Nova senha</span>
+                  <span className="super-result-val super-result-code">{credModal.password}</span>
+                </div>
+                <div className="super-result-row">
+                  <span className="super-result-key">URL</span>
+                  <span className="super-result-val" style={{ fontSize: '0.8rem' }}>room.heroisdaescola.com.br</span>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-modal-confirm" onClick={() => setCredModal(null)}>Fechar</button>
             </div>
           </div>
         </div>

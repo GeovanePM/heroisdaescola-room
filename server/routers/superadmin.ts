@@ -121,6 +121,30 @@ export const superAdminRouter = router({
       return { school, accessCode, directorEmail: input.directorEmail, directorPass: input.directorPass }
     }),
 
+  resetDirectorPassword: protectedProcedure
+    .input(z.object({ schoolId: z.string().uuid() }))
+    .mutation(async ({ input, ctx }) => {
+      requireSuperAdmin(ctx.staff.role)
+
+      const { data: director } = await supabase
+        .from('room_staff')
+        .select('id, email, name')
+        .eq('school_id', input.schoolId)
+        .eq('role', 'director')
+        .eq('active', true)
+        .maybeSingle()
+
+      if (!director) throw new TRPCError({ code: 'NOT_FOUND', message: 'Diretor não encontrado' })
+
+      const chars   = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
+      const newPass = Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join('')
+      const hash    = await bcrypt.hash(newPass, 10)
+
+      await supabase.from('room_staff').update({ password_hash: hash }).eq('id', director.id)
+
+      return { email: director.email, name: director.name, password: newPass }
+    }),
+
   toggleSchool: protectedProcedure
     .input(z.object({ id: z.string().uuid(), active: z.boolean() }))
     .mutation(async ({ input, ctx }) => {
