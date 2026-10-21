@@ -6,7 +6,7 @@ const NAV_ITEMS = {
   teacher:       [{ to: '/app/sala',       label: '🏫 Minha Sala' }, { to: '/app/games', label: '🎮 Jogos' }],
   supervisor:    [{ to: '/app/supervisor', label: '👁️ Supervisão' }, { to: '/app/qrcodes', label: '📱 QR Codes' }, { to: '/app/games', label: '🎮 Jogos' }, { to: '/director-tv', label: '📺 TV' }],
   vice_director: [{ to: '/app/supervisor', label: '👁️ Supervisão' }, { to: '/app/qrcodes', label: '📱 QR Codes' }, { to: '/app/games', label: '🎮 Jogos' }, { to: '/director-tv', label: '📺 TV' }],
-  director:      [{ to: '/app/diretor', label: '🏛️ Visão Geral' }, { to: '/app/supervisor', label: '👁️ Salas ao Vivo' }, { to: '/app/relatorios', label: '📈 Relatórios' }, { to: '/app/qrcodes', label: '📱 QR Codes' }, { to: '/app/games', label: '🎮 Jogos' }, { to: '/director-tv', label: '📺 TV' }],
+  director:      [{ to: '/app/diretor', label: '🏛️ Visão Geral' }, { to: '/app/admin', label: '⚙️ Admin' }, { to: '/app/supervisor', label: '👁️ Salas ao Vivo' }, { to: '/app/relatorios', label: '📈 Relatórios' }, { to: '/app/qrcodes', label: '📱 QR Codes' }, { to: '/app/games', label: '🎮 Jogos' }, { to: '/director-tv', label: '📺 TV' }],
   admin:         [{ to: '/app/admin', label: '⚙️ Admin' }, { to: '/app/diretor', label: '🏛️ Visão Geral' }, { to: '/app/supervisor', label: '👁️ Salas' }, { to: '/app/relatorios', label: '📈 Relatórios' }, { to: '/app/qrcodes', label: '📱 QR Codes' }, { to: '/app/games', label: '🎮 Jogos' }, { to: '/director-tv', label: '📺 TV' }],
   super_admin:   [{ to: '/app/super', label: '🌐 Central' }],
 }

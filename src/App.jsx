@@ -61,7 +61,7 @@ function AppProviders() {
               <Route path="diretor"    element={<ProtectedRoute roles={['director','admin']}><DirectorPanel /></ProtectedRoute>} />
               <Route path="qrcodes"   element={<ProtectedRoute roles={['director','admin','supervisor']}><QRCodes /></ProtectedRoute>} />
               <Route path="ranking-tv" element={<RankingTV />} />
-              <Route path="admin"     element={<ProtectedRoute roles={['admin']}><AdminPanel /></ProtectedRoute>} />
+              <Route path="admin"     element={<ProtectedRoute roles={['admin','director']}><AdminPanel /></ProtectedRoute>} />
               <Route path="super"     element={<ProtectedRoute roles={['super_admin']}><SuperAdminPanel /></ProtectedRoute>} />
               <Route path="relatorios" element={<ProtectedRoute roles={['director','admin','vice_director']}><ReportsPanel /></ProtectedRoute>} />
               <Route path="games"     element={<GamesHub />} />
