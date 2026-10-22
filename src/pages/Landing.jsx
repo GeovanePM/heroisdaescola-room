@@ -294,7 +294,7 @@ function ContactSection() {
           </form>
         )}
 
-        <p className="contact-sub">Respondemos em até 24 horas · gmaciel@acaditi.com.br</p>
+        <p className="contact-sub">Respondemos em até 24 horas · geovaneconsultoriaescolar@gmail.com</p>
       </div>
     </section>
   )

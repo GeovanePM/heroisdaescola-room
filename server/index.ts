@@ -68,7 +68,7 @@ app.post('/api/contact', async (req: any, res: any) => {
   try {
     await transporter.sendMail({
       from: `"Heróis da Escola Room" <${process.env.SMTP_USER}>`,
-      to: 'gmaciel@acaditi.com.br',
+      to: 'geovaneconsultoriaescolar@gmail.com',
       replyTo: email,
       subject: `Novo contato — ${escola}`,
       text: `Nome: ${nome}\nEscola: ${escola}\nE-mail: ${email}\n\n${msg ?? ''}`,
