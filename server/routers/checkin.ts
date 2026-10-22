@@ -112,6 +112,68 @@ export const checkinRouter = router({
     return data ?? []
   }),
 
+  // Diretor/supervisor registra entrada de qualquer professor
+  forceCheckin: protectedProcedure
+    .input(z.object({
+      classroomId: z.string().uuid(),
+      staffId:     z.string().uuid(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      if (!['director','admin','vice_director','supervisor'].includes(ctx.staff.role))
+        throw new TRPCError({ code: 'FORBIDDEN' })
+
+      const { data: room } = await supabase
+        .from('room_classrooms')
+        .select('id, name, shift, hero_name, school_id')
+        .eq('id', input.classroomId)
+        .eq('school_id', ctx.staff.schoolId)
+        .eq('active', true)
+        .maybeSingle()
+      if (!room) throw new TRPCError({ code: 'NOT_FOUND', message: 'Sala não encontrada' })
+
+      const { data: staff } = await supabase
+        .from('room_staff')
+        .select('id, name')
+        .eq('id', input.staffId)
+        .eq('school_id', ctx.staff.schoolId)
+        .maybeSingle()
+      if (!staff) throw new TRPCError({ code: 'NOT_FOUND', message: 'Funcionário não encontrado' })
+
+      // Encerra check-in ativo anterior do professor
+      await supabase
+        .from('room_teacher_checkins')
+        .update({ checked_out_at: new Date().toISOString() })
+        .eq('staff_id', input.staffId)
+        .is('checked_out_at', null)
+
+      const { data: checkin, error } = await supabase
+        .from('room_teacher_checkins')
+        .insert({
+          classroom_id: input.classroomId,
+          staff_id:     input.staffId,
+          school_id:    ctx.staff.schoolId,
+          notes:        `Entrada registrada por ${ctx.staff.name}`,
+        })
+        .select()
+        .single()
+      if (error) throw new Error(error.message)
+
+      const roomLabel = room.hero_name
+        ? `${room.name} ${room.shift} · ${room.hero_name}`
+        : `${room.name} ${room.shift}`
+
+      broadcastToRoom('supervisor', {
+        type:        'checkin',
+        classroomId: input.classroomId,
+        staffId:     input.staffId,
+        staffName:   staff.name,
+        roomLabel,
+        checkedInAt: checkin.checked_in_at,
+      })
+
+      return { ok: true }
+    }),
+
   // Histórico de check-ins de uma sala
   history: protectedProcedure
     .input(z.object({ classroomId: z.string().uuid(), limit: z.number().default(30) }))

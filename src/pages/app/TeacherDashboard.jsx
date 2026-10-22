@@ -55,12 +55,14 @@ function calcularStatus(allEvents) {
 }
 
 function SalaTab({ status, rooms, refetchStatus, classroomId, refetchEvents, events, wsEvents }) {
-  const navigate = useNavigate()
   const [studentRef, setStudentRef] = useState('')
   const [exitPanel, setExitPanel]   = useState(false)
 
   const activeRoom = status?.room_classrooms ?? null
 
+  const enterMutation = trpc.checkin.enter.useMutation({
+    onSuccess() { refetchStatus() },
+  })
   const exitMutation = trpc.checkin.exit.useMutation({
     onSuccess() { refetchStatus() },
   })
@@ -89,26 +91,33 @@ function SalaTab({ status, rooms, refetchStatus, classroomId, refetchEvents, eve
 
   if (!activeRoom) return (
     <div className="checkin-prompt">
-      <div className="checkin-prompt-icon">📱</div>
-      <h2 className="checkin-prompt-title">Sem sala ativa</h2>
+      <div className="checkin-prompt-icon">🏫</div>
+      <h2 className="checkin-prompt-title">Em qual sala você está?</h2>
       <p className="checkin-prompt-desc">
-        Escaneie o QR Code afixado na sala para registrar sua entrada.
+        Selecione sua sala abaixo ou escaneie o QR Code afixado na porta.
       </p>
-      {rooms.length > 0 && (
-        <>
-          <p className="checkin-prompt-or">ou selecione manualmente:</p>
-          <div className="room-manual-list">
-            {rooms.map(r => (
-              <button
-                key={r.id}
-                className="room-manual-btn"
-                onClick={() => navigate(`/check-in/${r.id}`)}
-              >
-                {roomLabel(r)}
-              </button>
-            ))}
-          </div>
-        </>
+      {enterMutation.error && (
+        <p style={{ color: '#FF4444', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
+          {enterMutation.error.message}
+        </p>
+      )}
+      {rooms.length > 0 ? (
+        <div className="room-manual-list">
+          {rooms.map(r => (
+            <button
+              key={r.id}
+              className="room-manual-btn"
+              onClick={() => enterMutation.mutate({ classroomId: r.id })}
+              disabled={enterMutation.isPending}
+            >
+              {roomLabel(r)}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-dim)', marginTop: '0.5rem' }}>
+          Nenhuma sala cadastrada. Peça ao diretor para cadastrar as turmas.
+        </p>
       )}
     </div>
   )
@@ -515,7 +524,7 @@ export default function TeacherDashboard() {
   const wsRef = useRef(null)
 
   const { data: status, refetch: refetchStatus } = trpc.checkin.myStatus.useQuery()
-  const { data: rooms = [] } = trpc.classroom.myRooms.useQuery()
+  const { data: rooms = [] } = trpc.classroom.list.useQuery()
 
   const activeRoom   = status?.room_classrooms ?? null
   const classroomId  = activeRoom?.id

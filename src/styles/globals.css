@@ -1885,6 +1885,40 @@ body {
    RESPONSIVO — MOBILE & TABLET
    ═══════════════════════════════════════════════════════════════ */
 
+/* ── Aba Entradas (DirectorPanel) ───────────────────────────── */
+.entrada-room-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  background: var(--bg-card); border: 1px solid rgba(0,0,0,0.08);
+  border-radius: var(--radius-sm); padding: 0.9rem 1.1rem;
+}
+.entrada-room-info { display: flex; flex-direction: column; gap: 0.2rem; flex: 1; min-width: 0; }
+.entrada-room-name { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+.entrada-ocupado   { font-size: 0.82rem; font-weight: 600; }
+.entrada-vazia     { font-size: 0.8rem; color: var(--text-dim); font-style: italic; }
+.btn-entrada-reg {
+  flex-shrink: 0; white-space: nowrap;
+  padding: 7px 14px; border-radius: 8px; border: none;
+  background: var(--accent-dim); color: var(--accent);
+  font-family: inherit; font-size: 0.82rem; font-weight: 700;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-entrada-reg:hover { background: rgba(79,70,229,0.18); }
+
+/* Prompt de check-in do professor */
+.checkin-prompt { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 2rem 1rem; text-align: center; }
+.checkin-prompt-icon { font-size: 3rem; }
+.checkin-prompt-title { font-size: 1.3rem; font-weight: 800; color: var(--text); }
+.checkin-prompt-desc  { font-size: 0.92rem; color: var(--text-dim); max-width: 340px; }
+.room-manual-list { display: flex; flex-direction: column; gap: 0.5rem; width: 100%; max-width: 380px; }
+.room-manual-btn {
+  padding: 0.85rem 1.25rem; border-radius: 10px;
+  background: var(--bg-card); border: 1.5px solid rgba(0,0,0,0.1);
+  color: var(--text); font-family: inherit; font-size: 0.95rem; font-weight: 600;
+  cursor: pointer; transition: border-color 0.15s, background 0.15s; text-align: left;
+}
+.room-manual-btn:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-dim); }
+.room-manual-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* ── Mobile header (hamburger) ──────────────────────────────── */
 .app-mobile-header {
   display: none;

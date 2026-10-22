@@ -717,6 +717,121 @@ function RelogioAoVivo() {
 
 // ── Principal ─────────────────────────────────────────────────────────────────
 
+// ── Aba Entradas: diretor registra entrada de professor ───────────────────────
+const SHIFT_LABEL = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' }
+
+function Entradas() {
+  const utils = trpc.useUtils()
+  const [modal, setModal]         = useState(null) // { classroomId, classroomLabel }
+  const [staffSel, setStaffSel]   = useState('')
+  const [err, setErr]             = useState('')
+
+  const { data: classrooms = [] }              = trpc.classroom.list.useQuery()
+  const { data: occupancy = [], refetch: refOcc } = trpc.checkin.occupancy.useQuery()
+  const { data: staffList = [] }               = trpc.admin.staffList.useQuery()
+
+  const occupiedMap = useMemo(() => {
+    const m = {}
+    occupancy.forEach(o => { m[o.classroom_id] = o })
+    return m
+  }, [occupancy])
+
+  const teachers = staffList.filter(s =>
+    ['teacher','supervisor','vice_director','director'].includes(s.role) && s.active !== false
+  )
+
+  const forceMut = trpc.checkin.forceCheckin.useMutation({
+    onSuccess() {
+      refOcc()
+      setModal(null)
+      setStaffSel('')
+      setErr('')
+    },
+    onError(e) { setErr(e.message) },
+  })
+
+  function abrirModal(classroom) {
+    const shift = SHIFT_LABEL[classroom.shift] ?? classroom.shift
+    const label = classroom.hero_name
+      ? `${classroom.name} ${shift} · ${classroom.hero_name}`
+      : `${classroom.name} ${shift}`
+    setModal({ classroomId: classroom.id, classroomLabel: label })
+    setStaffSel('')
+    setErr('')
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)', marginBottom: '0.25rem' }}>
+        Registre manualmente a entrada de um professor em qualquer sala.
+      </p>
+
+      {classrooms.map(room => {
+        const occ   = occupiedMap[room.id]
+        const shift = SHIFT_LABEL[room.shift] ?? room.shift
+        return (
+          <div key={room.id} className="entrada-room-row">
+            <div className="entrada-room-info">
+              <span className="entrada-room-name">{room.name} <span style={{ fontWeight: 400, color: 'var(--text-dim)' }}>{shift}</span></span>
+              {occ ? (
+                <span className="entrada-ocupado">
+                  <span style={{ color: '#00ff88' }}>●</span> {occ.room_staff?.name}
+                  <span style={{ color: 'var(--text-dim)', fontWeight: 400 }}>
+                    {' '}· desde {new Date(occ.checked_in_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </span>
+              ) : (
+                <span className="entrada-vazia">Sem professor</span>
+              )}
+            </div>
+            <button className="btn-entrada-reg" onClick={() => abrirModal(room)}>
+              {occ ? '🔄 Trocar' : '➕ Registrar Entrada'}
+            </button>
+          </div>
+        )
+      })}
+
+      {modal && (
+        <div className="modal-overlay" onClick={() => setModal(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Registrar Entrada</h3>
+              <button className="modal-close" onClick={() => setModal(null)}>×</button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-dim)', marginBottom: '1rem' }}>
+                Sala: <strong>{modal.classroomLabel}</strong>
+              </p>
+              {err && <p className="form-error">{err}</p>}
+              <label className="form-label">Selecione o professor</label>
+              <select
+                className="form-select"
+                value={staffSel}
+                onChange={e => setStaffSel(e.target.value)}
+              >
+                <option value="">— Escolha um funcionário —</option>
+                {teachers.map(s => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-modal-cancel" onClick={() => setModal(null)}>Cancelar</button>
+              <button
+                className="btn-modal-confirm"
+                disabled={!staffSel || forceMut.isPending}
+                onClick={() => forceMut.mutate({ classroomId: modal.classroomId, staffId: staffSel })}
+              >
+                {forceMut.isPending ? 'Registrando...' : 'Confirmar Entrada'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function DirectorPanel() {
   const [aba, setAba] = useState('visao')
 
@@ -727,6 +842,7 @@ export default function DirectorPanel() {
   const ABAS = [
     { id: 'visao',    label: '📊 Visão Geral' },
     { id: 'turmas',   label: '🏫 Turmas'      },
+    { id: 'entradas', label: '📋 Entradas'     },
     { id: 'alunos',   label: '👥 Alunos'      },
     { id: 'materias', label: '🎮 Matérias'    },
   ]
@@ -753,10 +869,11 @@ export default function DirectorPanel() {
         ))}
       </div>
 
-      {aba === 'visao'    && <VisaoGeral classrooms={classrooms} ranking={ranking} tasks={tasks} />}
-      {aba === 'turmas'   && <Turmas classrooms={classrooms} />}
-      {aba === 'alunos'   && <Alunos classrooms={classrooms} />}
-      {aba === 'materias' && <Materias />}
+      {aba === 'visao'     && <VisaoGeral classrooms={classrooms} ranking={ranking} tasks={tasks} />}
+      {aba === 'turmas'    && <Turmas classrooms={classrooms} />}
+      {aba === 'entradas'  && <Entradas />}
+      {aba === 'alunos'    && <Alunos classrooms={classrooms} />}
+      {aba === 'materias'  && <Materias />}
     </div>
   )
 }
