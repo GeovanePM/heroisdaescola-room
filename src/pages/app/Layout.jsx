@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { startKeepAlive, stopKeepAlive } from '../../lib/warmup'
 
 const NAV_ITEMS = {
   teacher:       [{ to: '/app/sala',       label: '🏫 Minha Sala' }, { to: '/app/games', label: '🎮 Jogos' }],
@@ -22,6 +23,16 @@ export default function AppLayout() {
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   const items = NAV_ITEMS[user?.role] ?? []
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [menuOpen])
+
+  useEffect(() => {
+    startKeepAlive()
+    return () => stopKeepAlive()
+  }, [])
 
   function handleLogout() {
     logout()

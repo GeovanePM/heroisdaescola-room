@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { pingServer } from '../lib/warmup'
 
 const HEROES = [
   { name: 'Mitos',   color: '#00BFFF', glow: 'rgba(0,191,255,0.4)',  img: '/assets/mitos.png',   turma: '6º A' },
@@ -68,7 +69,6 @@ function HeroSection() {
 
       <div className="hero-logo-wrap">
         <img src="/assets/logo.png" alt="Heróis da Escola" className="hero-logo-main" />
-        <span className="hero-badge">É divertido estudar!</span>
       </div>
 
       <div className="hero-bottom">
@@ -212,19 +212,89 @@ function RolesSection() {
   )
 }
 
+const API = import.meta.env.VITE_API_URL
+
 function ContactSection() {
+  const [form, setForm]       = useState({ nome: '', escola: '', email: '', msg: '' })
+  const [status, setStatus]   = useState('idle') // idle | loading | sent | error
+  const [errMsg, setErrMsg]   = useState('')
+
+  function f(field) {
+    return e => setForm(prev => ({ ...prev, [field]: e.target.value }))
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setStatus('loading')
+    setErrMsg('')
+    try {
+      const r = await fetch(`${API}/api/contact`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      const data = await r.json()
+      if (!r.ok) { setErrMsg(data.error ?? 'Erro ao enviar.'); setStatus('error'); return }
+      setStatus('sent')
+    } catch {
+      setErrMsg('Sem conexão. Verifique sua internet e tente novamente.')
+      setStatus('error')
+    }
+  }
+
   return (
     <section className="contact-section" id="contato">
       <div className="contact-inner">
         <h2 className="contact-title">Pronta para a aventura?</h2>
         <p className="contact-desc">Leve a gamificação para sua escola. Entre em contato e saiba como começar.</p>
-        <a
-          href="mailto:profetageovane@icloud.com?subject=Quero o Heróis da Escola Room"
-          className="btn-contact"
-        >
-          Entrar em contato
-        </a>
-        <p className="contact-sub">Respondemos em até 24 horas</p>
+
+        {status === 'sent' ? (
+          <div className="contact-sent">
+            ✅ Mensagem enviada! Retornaremos em até 24 horas.
+          </div>
+        ) : (
+          <form className="contact-form" onSubmit={handleSubmit}>
+            <input
+              className="contact-input"
+              placeholder="Seu nome"
+              value={form.nome}
+              onChange={f('nome')}
+              required
+              disabled={status === 'loading'}
+            />
+            <input
+              className="contact-input"
+              placeholder="Nome da escola"
+              value={form.escola}
+              onChange={f('escola')}
+              required
+              disabled={status === 'loading'}
+            />
+            <input
+              className="contact-input"
+              type="email"
+              placeholder="Seu e-mail para retorno"
+              value={form.email}
+              onChange={f('email')}
+              required
+              disabled={status === 'loading'}
+            />
+            <textarea
+              className="contact-input contact-textarea"
+              placeholder="Mensagem ou dúvida (opcional)"
+              value={form.msg}
+              onChange={f('msg')}
+              rows={3}
+              disabled={status === 'loading'}
+            />
+            {status === 'error' && <p className="contact-error">{errMsg}</p>}
+            <button type="submit" className="btn-contact" disabled={status === 'loading'}>
+              {status === 'loading' ? 'Enviando...' : 'Enviar mensagem'}
+            </button>
+          </form>
+        )}
+
+        <p className="contact-sub">Respondemos em até 24 horas · gmaciel@acaditi.com.br</p>
       </div>
     </section>
   )
@@ -244,6 +314,7 @@ function Footer() {
 }
 
 export default function Landing() {
+  useEffect(() => { pingServer() }, [])
   return (
     <>
       <Nav />

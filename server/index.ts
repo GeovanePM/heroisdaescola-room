@@ -10,6 +10,7 @@ import { appRouter } from './routers/index.js'
 import { createContext } from './trpc.js'
 import { getTaskPublic, handleCompletion } from './routers/task.js'
 import { supabase } from './supabase.js'
+import nodemailer from 'nodemailer'
 
 const app  = express()
 const PORT = Number(process.env.PORT ?? 3001)
@@ -37,6 +38,53 @@ app.use(express.json())
 app.use('/api/trpc', trpcExpress.createExpressMiddleware({ router: appRouter, createContext }))
 
 app.get('/health', (_, res) => res.json({ ok: true }))
+
+// ── Formulário de contato da landing page ─────────────────────────────────────
+function makeTransporter() {
+  const host = process.env.SMTP_HOST
+  const user = process.env.SMTP_USER
+  const pass = process.env.SMTP_PASS
+  if (!host || !user || !pass) return null
+  return nodemailer.createTransport({
+    host,
+    port: Number(process.env.SMTP_PORT ?? 587),
+    secure: Number(process.env.SMTP_PORT ?? 587) === 465,
+    auth: { user, pass },
+  })
+}
+
+app.post('/api/contact', async (req: any, res: any) => {
+  const { nome, escola, email, msg } = req.body ?? {}
+  if (!nome?.trim() || !escola?.trim() || !email?.trim()) {
+    return res.status(400).json({ error: 'Preencha nome, escola e e-mail.' })
+  }
+
+  const transporter = makeTransporter()
+  if (!transporter) {
+    console.log('[contato]', { nome, escola, email, msg })
+    return res.json({ ok: true })
+  }
+
+  try {
+    await transporter.sendMail({
+      from: `"Heróis da Escola Room" <${process.env.SMTP_USER}>`,
+      to: 'gmaciel@acaditi.com.br',
+      replyTo: email,
+      subject: `Novo contato — ${escola}`,
+      text: `Nome: ${nome}\nEscola: ${escola}\nE-mail: ${email}\n\n${msg ?? ''}`,
+      html: `<h2>Novo contato via Heróis da Escola Room</h2>
+<p><b>Nome:</b> ${nome}</p>
+<p><b>Escola:</b> ${escola}</p>
+<p><b>E-mail:</b> <a href="mailto:${email}">${email}</a></p>
+${msg ? `<p><b>Mensagem:</b><br>${msg.replace(/\n/g, '<br>')}</p>` : ''}
+<hr><small>Enviado pelo formulário em room.heroisdaescola.com.br</small>`,
+    })
+    res.json({ ok: true })
+  } catch (e: any) {
+    console.error('[contato] SMTP error:', e.message)
+    res.status(500).json({ error: 'Erro ao enviar. Tente novamente em instantes.' })
+  }
+})
 
 // ── Endpoints públicos para o Guardiões dos Números ───────────────────────────
 app.get('/api/tasks/:taskId', async (req, res) => {

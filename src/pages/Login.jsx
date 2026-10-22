@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { trpc } from '../lib/trpc'
+import { pingServer } from '../lib/warmup'
 
 const ROLE_REDIRECT = {
   teacher:       '/app/sala',
@@ -18,6 +19,16 @@ export default function Login() {
   const [email, setEmail]   = useState('')
   const [password, setPassword] = useState('')
   const [error, setError]   = useState('')
+  const [serverSlow, setServerSlow] = useState(false)
+
+  useEffect(() => {
+    let slow = setTimeout(() => setServerSlow(true), 2000)
+    pingServer().then(() => {
+      clearTimeout(slow)
+      setServerSlow(false)
+    })
+    return () => clearTimeout(slow)
+  }, [])
 
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess(data) {
@@ -44,6 +55,12 @@ export default function Login() {
           <span className="login-room-tag">Room</span>
         </div>
         <h1 className="login-title">Acesse sua conta</h1>
+        {serverSlow && (
+          <div className="server-warmup-banner">
+            <span className="server-warmup-dot" />
+            Servidor iniciando, aguarde alguns segundos...
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="login-form">
           <label className="login-label">
             E-mail

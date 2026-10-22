@@ -7,3 +7,6 @@ dist/
 *.env
 
 .vercel
+
+# Scripts locais com tokens/segredos
+scripts/
